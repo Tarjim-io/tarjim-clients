@@ -1,0 +1,25 @@
+## Instructions
+Setup tarjim in cake before react
+### Setup:
+1. copy index.js into  src/services/LocalizationService/index.js
+2. install i18n-js `npm install i18n-js`
+3. install lodash `npm install lodash`
+4. mv update_locale.php to porject root
+5. edit project_id in update_locale.php
+6. run update_locale.php `php update_locale.php`
+7. add `php update_locale.php` to setup_environment script
+8. in App.js: 	
+		import { LocalizationProvider } from 'services/LocalizationService';
+		add <LocalizationService> as parent tag
+
+### Usage:
+		import { LocalizationContext } from 'services/LocalizationService';
+* Transalte: 
+		const { __T } = useContext(LocalizationContext);
+
+* Change lang:
+		const { setTranslation } = useContext(LocalizationContext);
+		setTranslation(language);
+
+* Get current lang: 
+		cont { getCurrentLocale } = useContext(LocalizationContext);

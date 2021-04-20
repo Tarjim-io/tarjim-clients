@@ -1,0 +1,53 @@
+1. mv tarjim-client to vendors/
+2. mkdir tmp/cache/locale/
+3. chmod 777 tmp/cache/locale/
+4. mv tajim_v1_controller.php to controllers/api/v1/
+5. add following routes:
+
+## Translation routes
+Router::connect('/api/v1/get-latest-frontend-locale',
+['controller' => 'tarjim_v1', 'action' => 'getFrontendLocale', 'method' => 'GET']);
+Router::connect('/api/v1/update-locale-cache',
+['controller' => 'tarjim_v1', 'action' => 'updateLocaleCache', 'method' => 'GET']);
+
+6. add following to config/core:
+ 		
+## Tarjim / Translations Load Tarjim.io translation client
+require_once __DIR__.'/../vendors/tarjim-client.php';
+Configure::write('TARJIM_PROJECT_ID', 3);
+Configure::write('TARJIM_DEFAULT_NAMESPACE', 'backend');
+
+7. update TARJIM_PROJECT_ID
+8. add to app_controller:
+
+	/**
+   *
+   */
+  public function setTranslation($namespace = 'backend', $language = 'en') {
+		global $_T;
+		
+		// For api tests
+		if (empty($language)) {
+			$language = 'en';
+		}
+
+    # Set translation keys
+    $Tarjim = new Tarjimclient();
+		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
+		$Tarjim->namespace = $namespace;
+    $_T = $Tarjim->getTranslations();
+		## for Cakex view translation (non-json encoded)
+		#debug($_T);die();
+		$_T = $_T['results'][$namespace][$language]; 
+    $this->set('_T', $_T);
+    #$this->set('translationArray', json_encode($_T));
+  }
+
+public function beforeFilter() {
+		## Set active language view variable
+    $active_language = $this->Session->read('Config.language');
+    $this->set('active_language', $active_language);
+    $this->setTranslation(Configure::read('TARJIM_DEFAULT_NAMESPACE'), $active_language);
+}
+
+Usage: _T()
