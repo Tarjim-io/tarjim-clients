@@ -40,13 +40,15 @@ export const LocalizationProvider = ({children}) => {
     if (languageElement) {
       language = languageElement.getAttribute('data-language')
     }
+		
+		// Set initial config
+		_setI18nConfig(language);
 
     // Set language
 		async function _updateTranslations() {
 			await updateTranslationKeys();
 		}
 		_updateTranslations();
-		_setI18nConfig(language);
 		forceUpdate();
 
 		// Disable eslint warning for next line
@@ -80,8 +82,19 @@ export const LocalizationProvider = ({children}) => {
    *
    */
 	async function updateTranslationKeys() {
-		let updatedTranslationKeys = await getTranslationsFromApi()
+		let updatedTranslationKeys = await getTranslationsFromApi();
 		translationKeys = updatedTranslationKeys;
+
+		// Get language from cake
+		let languageElement = document.getElementById('language');
+    let language = 'en';
+    if (languageElement) {
+      language = languageElement.getAttribute('data-language')
+    }
+		
+		// Update config
+		_setI18nConfig(language);
+		forceUpdate();
 	}
 
 	/**
