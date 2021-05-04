@@ -16,7 +16,8 @@ class Tarjimclient {
 	public $namespace;
 
 	/**
-	 * Retrieve translations from Tarjim
+	 * Checks tarjim results_last_updated and compare with latest file in cache
+	 * if tarjim result is newer than cache pull from tarjim and update cache
 	 */
 	public function getTranslations() {
 		## Get cache file names in descending order 
@@ -45,6 +46,7 @@ class Tarjimclient {
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 			$meta = curl_exec($ch);
+
 			if (curl_error($ch)) {
 				$cache_data = file_get_contents($cache_dir . $newest_file);
 				$final = json_decode($cache_data, true);
@@ -57,6 +59,7 @@ class Tarjimclient {
 			if (!is_dir($newest_file)) {
 				if ($newest_file < $meta['meta']['results_last_update']) {
 					$final = $this->getLatestFromTarjim();	
+					$this->updateCache($final);
 				}
 				else {
 					$cache_data = file_get_contents($cache_dir . $newest_file);
@@ -65,6 +68,7 @@ class Tarjimclient {
 			}
 			else {
 				$final = $this->getLatestFromTarjim();	
+				$this->updateCache($final);
 			}
 	//	}
 
@@ -72,7 +76,7 @@ class Tarjimclient {
 	}
 
 	/**
-	 *
+	 * Update cache files
 	 */
 	public function updateCache($latest) {
 		$cache_dir = __DIR__ . '/../tmp/cache/locale/';
@@ -81,12 +85,11 @@ class Tarjimclient {
 		file_put_contents($cache_dir.'locale_last_updated', $locale_last_updated);
 
 		$encoded = json_encode($latest);
-
 		file_put_contents($cache_dir . $latest['meta']['results_last_update'], $encoded);
 	}
 
 	/**
-	 *
+	 * Get full results from tarjim
 	 */
 	public function getLatestFromTarjim() {
 		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id;
@@ -106,8 +109,6 @@ class Tarjimclient {
 		}
 
 		$decoded = json_decode($result, true);
-
-		$this->updateCache($decoded);
 
 		return $decoded;
 	} 

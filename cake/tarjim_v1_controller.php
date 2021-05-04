@@ -32,16 +32,11 @@ class TarjimV1Controller extends ApiV1Controller {
    *
    */
   public function updateLocaleCache() {
-		if (empty($_POST['translations'])) {
-			$error['message'] = 'missing field translations';
-			$this->outputFailedApi($error, 400);
-    }
-
-		$latest = json_decode($_POST['translations'], true);
 
     $Tarjim = new Tarjimclient();
 		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
-    $result = $Tarjim->updateCache($latest);
+    $result = $Tarjim->getLatestFromTarjim();
+		$Tarjim->updateCache($result);
     
     $this->outputSuccessfulApi();
   }

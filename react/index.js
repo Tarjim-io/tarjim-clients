@@ -26,8 +26,9 @@ function useForceUpdate() {
 }
 
 export const LocalizationProvider = ({children}) => {
+	const forceUpdate = useForceUpdate(); 
 	// Emulate force update with react hooks
-	const forceUpdate = useForceUpdate();
+//	const forceUpdate = useForceUpdate();
 
 
 	/**
