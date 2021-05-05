@@ -122,37 +122,26 @@ class Tarjimclient {
  * Read from the global $_T
  */
 ///////////////////////////////
-function _T($key, $ucfirst = false, $do_addslashes = false, $debug = false) {
+function _T($key, $do_addslashes = false, $debug = false) {
 	global $_T;
+	$key = strtolower($key);
 
 	## Direct match
 	if (isset($_T[$key]) && !empty($_T[$key])) {
 		$mode = 'direct';
-		$result = $ucfirst ? ucfirst($_T[$key]) : $_T[$key];
-	}
-
-	## Try ucfirst
-	if (isset($_T[ucfirst($key)]) && !empty($_T[ucfirst($key)])) {
-		$mode = 'ucfirst';
-		$result = $ucfirst ? urldecode(ucfirst($_T[ucfirst($key)])) : urldecode($_T[ucfirst($key)]);
-	}
-
-	## Try lcfirst
-	if (isset($_T[lcfirst($key)])) {
-		$mode = 'lcfirst';
-		$result = $ucfirst ? urldecode(ucfirst($_T[lcfirst($key)])) : urldecode($_T[lcfirst($key)]);
+		$result = $_T[$key];
 	}
 
 	## Fallback key
 	if (isset($_T[$key]) && empty($_T[$key])) {
 		$mode = 'key_fallback';
-		$result = $ucfirst ? ucfirst($key) : $key;
+		$result = $key;
 	}
 
 	## Empty fall back (return key)
 	if (!isset($_T[$key])) {
 		$mode = 'empty_key_fallback';
-		$result = $ucfirst ? ucfirst($key) : $key;
+		$result = $key;
 	}
 
 	## Debug mode

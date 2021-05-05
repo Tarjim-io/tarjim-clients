@@ -39,6 +39,9 @@ Configure::write('TARJIM_DEFAULT_NAMESPACE', 'backend');
 		## for Cakex view translation (non-json encoded)
 		#debug($_T);die();
 		$_T = $_T['results'][$namespace][$language]; 
+
+		// change keys to lower case for case insensitive
+		$_T = array_change_key_case($_T, CASE_LOWER);
     $this->set('_T', $_T);
     #$this->set('translationArray', json_encode($_T));
   }
