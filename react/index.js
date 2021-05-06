@@ -30,7 +30,6 @@ export const LocalizationProvider = ({children}) => {
 	// Emulate force update with react hooks
 //	const forceUpdate = useForceUpdate();
 
-
 	/**
 	 * Execute on component mount
 	 */
@@ -60,9 +59,12 @@ export const LocalizationProvider = ({children}) => {
 	 *
 	 */
 	const __T = memoize(
-		(key, config) => i18n.t(key, {defaultValue: key, ...config}),
+		(key, config) => 
+			i18n.t(typeof key == 'string' ? key.toLowerCase() : key, {defaultValue: key, ...config})
+		,
 		(key, config) => (config ? key + JSON.stringify(config) : key)
 	);
+	
 
 	/**
 	 *

@@ -2,7 +2,6 @@
 App::import('Controller', 'ApiV1');
 
 class TarjimV1Controller extends ApiV1Controller {
-
   /**
    *
    */
@@ -32,7 +31,7 @@ class TarjimV1Controller extends ApiV1Controller {
    *
    */
   public function updateLocaleCache() {
-
+    
     $Tarjim = new Tarjimclient();
 		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
     $result = $Tarjim->getLatestFromTarjim();

@@ -1,4 +1,5 @@
 1. mv tarjim-client to vendors/
+2. mv tarjim.php to vendors/shells/
 2. mkdir tmp/cache/locale/
 3. chmod 777 tmp/cache/locale/
 4. mv tajim_v1_controller.php to controllers/api/v1/
@@ -25,23 +26,36 @@ Configure::write('TARJIM_DEFAULT_NAMESPACE', 'backend');
    */
   public function setTranslation($namespace = 'backend', $language = 'en') {
 		global $_T;
-		
-		// For api tests
-		if (empty($language)) {
+
+		## Support older language keys
+		switch($language) {
+		case 'en':
+		case 'eng':
+		case 'english':
 			$language = 'en';
+			break;
+
+		case 'fr':
+		case 'fre':
+		case 'french':
+			$language = 'fr';
+			break;
+
+		default:
+			$language = 'fr';
+			break;
+
 		}
 
-    # Set translation keys
+    ## Set translation keys
     $Tarjim = new Tarjimclient();
 		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
 		$Tarjim->namespace = $namespace;
     $_T = $Tarjim->getTranslations();
 		## for Cakex view translation (non-json encoded)
 		#debug($_T);die();
-		$_T = $_T['results'][$namespace][$language]; 
+		$_T = $_T['results'][$namespace][$language];
 
-		// change keys to lower case for case insensitive
-		$_T = array_change_key_case($_T, CASE_LOWER);
     $this->set('_T', $_T);
     #$this->set('translationArray', json_encode($_T));
   }
