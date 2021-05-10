@@ -11,9 +11,13 @@
 
 class Tarjimclient {
 
-	public $project_id;
-
-	public $namespace;
+	/**
+	 *
+	 */
+	public function __construct() {
+		$this->project_id = Configure::read('TARJIM_PROJECT_ID');
+		$this->apikey = Configure::read('TARJIM_APIKEY');
+	}
 
 	/**
 	 * Checks tarjim results_last_updated and compare with latest file in cache
@@ -34,13 +38,13 @@ class Tarjimclient {
 		$diff = $time_now->diff($locale_last_updated);
 
 		## If cache was updated in last $ttl_in_minutes min get data directly from cache
-		if (0 == $diff->h && 0 == $diff->d && $ttl_in_minutes > $diff->i) {
+		if (0 == $diff->h && 0 == $diff->d && $ttl_in_minutes > $diff->i && !is_dir($cache_dir . $newest_file)) {
 			$cache_data = file_get_contents($cache_dir . $newest_file);
 			$final = json_decode($cache_data, true);
 		}
 		else {
 			## Pull meta
-			$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id;
+			$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id.'&apikey='.$this->apikey;
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $endpoint);
 			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
@@ -93,7 +97,7 @@ class Tarjimclient {
 	 * Get full results from tarjim
 	 */
 	public function getLatestFromTarjim() {
-		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id;
+		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id.'&apikey='.$this->apikey;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 5);
