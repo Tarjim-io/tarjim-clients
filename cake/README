@@ -13,12 +13,13 @@ Router::connect('/api/v1/update-locale-cache',
 ['controller' => 'tarjim', 'action' => 'updateLocaleCache', 'method' => 'GET']);
 ```
 8. add following to config/core:
- 		
+```	
 ## Tarjim / Translations Load Tarjim.io translation client
 require_once __DIR__.'/../vendors/tarjim-client.php';
 Configure::write('TARJIM_PROJECT_ID', 3);
 Configure::write('TARJIM_DEFAULT_NAMESPACE', 'backend');
 Configure::write('TARJIM_APIKEY', '12378'); 
+```
 
 9. update TARJIM_PROJECT_ID
 10. add to app_controller:

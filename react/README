@@ -11,7 +11,7 @@ Setup tarjim in cake before react
 8. in App.js: 	
 		import { LocalizationProvider } from 'services/LocalizationService';
 		add <LocalizationService> as parent tag
-9. add to the url params for all api calls skip_get_translations=true
+9. add to the url params for all api calls skip_get_translations=1
 ### Usage:
 		import { LocalizationContext } from 'services/LocalizationService';
 * Transalte: 

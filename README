@@ -1,0 +1,22 @@
+## Update notes
+### Cake
+1. clear contents of tmp/cache/locale/locale_last_updated
+2. copy cake/tarjim-client.php to vendors/tarjim-client.php
+3. delete tarjim_v1_controller.php
+4. copy cake/tarjim_controller.php to controllers/
+5. edit tarjim routes remove 'api/vi' from controller
+6. in app_controller->beforeFilter() replace tarjim related code with 
+
+```
+// Skip get translations from tarjim for api calls
+if (!isset($_GET['skip_get_translations']) || '1' != $_GET['skip_get_translations']) {
+## Set active language view variable
+	$active_language = $this->Session->read('Config.language');
+	$this->set('active_language', $active_language);
+	$this->setTranslation(Configure::read('TARJIM_DEFAULT_NAMESPACE'), $active_language);
+}
+
+```
+
+### React
+1. add to the url params for all api calls skip_get_translations=1
