@@ -10,7 +10,6 @@
  */
 
 class Tarjimclient {
-
 	/**
 	 *
 	 */
@@ -31,14 +30,16 @@ class Tarjimclient {
 		$newest_file = $cache_files[1];
 		$ttl_in_minutes = 15;
 
-		$time_now = date('Y-m-d H:i:s');
-		$time_now = new DateTime($time_now);
+		$time_now = time();
+		$time_now_in_minutes = (int) ($time_now / 60);
 		$locale_last_updated = file_get_contents($cache_dir.'locale_last_updated');
-		$locale_last_updated = new DateTime($locale_last_updated);
-		$diff = $time_now->diff($locale_last_updated);
+		if (!empty($locale_last_updated)) {
+			$locale_last_updated_in_minutes = (int) ($locale_last_updated / 60);
+			$diff = $time_now_in_minutes - $locale_last_updated_in_minutes;
+		}
 
 		## If cache was updated in last $ttl_in_minutes min get data directly from cache
-		if (0 == $diff->h && 0 == $diff->d && $ttl_in_minutes > $diff->i && !is_dir($cache_dir . $newest_file)) {
+		if (isset($diff) && $diff < $ttl_in_minutes && !is_dir($cache_dir . $newest_file)) {
 			$cache_data = file_get_contents($cache_dir . $newest_file);
 			$final = json_decode($cache_data, true);
 		}
@@ -86,7 +87,7 @@ class Tarjimclient {
 	public function updateCache($latest) {
 		$cache_dir = __DIR__ . '/../tmp/cache/locale/';
 
-		$locale_last_updated = date("Y-m-d H:i:s");
+		$locale_last_updated = time();
 		file_put_contents($cache_dir.'locale_last_updated', $locale_last_updated);
 
 		$encoded = json_encode($latest);

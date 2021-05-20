@@ -1,5 +1,5 @@
-1. mv tarjim-client to vendors/
-2. mv tarjim.php to vendors/shells/
+1. cp tarjim-client to vendors/
+2. cp tarjim.php to vendors/shells/
 3. mkdir tmp/cache/locale
 4. touch tmp/cache/locale/locale_last_updated
 5. chmod -R 777 tmp/cache/locale/
