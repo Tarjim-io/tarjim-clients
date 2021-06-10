@@ -45,7 +45,7 @@ class Tarjimclient {
 		}
 		else {
 			## Pull meta
-			$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
+			$endpoint = 'https://tarjim.io/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $endpoint);
 			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
@@ -98,7 +98,7 @@ class Tarjimclient {
 	 * Get full results from tarjim
 	 */
 	public function getLatestFromTarjim() {
-		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
+		$endpoint = 'https://tarjim.io/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 5);

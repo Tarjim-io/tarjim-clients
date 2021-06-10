@@ -20,7 +20,6 @@ Configure::write('TARJIM_PROJECT_ID', 3);
 Configure::write('TARJIM_DEFAULT_NAMESPACE', 'backend');
 Configure::write('TARJIM_APIKEY', '12378'); 
 ```
-
 9. update TARJIM_PROJECT_ID
 10. add to app_controller:
  - Note: add project language cases to switch statement below
