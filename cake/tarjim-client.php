@@ -87,12 +87,14 @@ class Tarjimclient {
 	 */
 	public function updateCache($latest) {
 		$cache_dir = __DIR__ . '/../tmp/cache/locale/';
+		$cache_file_name = $cache_dir.$latest['meta']['results_last_update'];
 
 		$locale_last_updated = time();
 		file_put_contents($cache_dir.'locale_last_updated', $locale_last_updated);
 
 		$encoded = json_encode($latest);
-		file_put_contents($cache_dir . $latest['meta']['results_last_update'], $encoded);
+		file_put_contents($cache_file_name, $encoded);
+		chmod($cache_file_name, 0777);
 	}
 
 	/**
