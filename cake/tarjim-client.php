@@ -16,6 +16,7 @@ class Tarjimclient {
 	public function __construct() {
 		$this->project_id = Configure::read('TARJIM_PROJECT_ID');
 		$this->apikey = Configure::read('TARJIM_APIKEY');
+		$this->cache_dir = __DIR__ . '/../../../tmp/cache/locale/';
 	}
 
 	/**
@@ -25,22 +26,21 @@ class Tarjimclient {
 	public function getTranslations() {
 		## Get cache file names in descending order
 		# then get the newest file
-		$cache_dir = __DIR__ . '/../tmp/cache/locale/';
-		$cache_files = scandir($cache_dir, 1);
+		$cache_files = scandir($this->cache_dir, 1);
 		$newest_file = $cache_files[1];
 		$ttl_in_minutes = 15;
 
 		$time_now = time();
 		$time_now_in_minutes = (int) ($time_now / 60);
-		$locale_last_updated = file_get_contents($cache_dir.'locale_last_updated');
+		$locale_last_updated = file_get_contents($this->cache_dir.'locale_last_updated');
 		if (!empty($locale_last_updated)) {
 			$locale_last_updated_in_minutes = (int) ($locale_last_updated / 60);
 			$diff = $time_now_in_minutes - $locale_last_updated_in_minutes;
 		}
 
 		## If cache was updated in last $ttl_in_minutes min get data directly from cache
-		if (isset($diff) && $diff < $ttl_in_minutes && !is_dir($cache_dir . $newest_file)) {
-			$cache_data = file_get_contents($cache_dir . $newest_file);
+		if (isset($diff) && $diff < $ttl_in_minutes && !is_dir($this->cache_dir . $newest_file)) {
+			$cache_data = file_get_contents($this->cache_dir . $newest_file);
 			$final = json_decode($cache_data, true);
 		}
 		else {
@@ -55,7 +55,7 @@ class Tarjimclient {
 			$meta = curl_exec($ch);
 
 			if (curl_error($ch)) {
-				$cache_data = file_get_contents($cache_dir . $newest_file);
+				$cache_data = file_get_contents($this->cache_dir . $newest_file);
 				$final = json_decode($cache_data, true);
 				return $final;
 			}
@@ -69,7 +69,7 @@ class Tarjimclient {
 					$this->updateCache($final);
 				}
 				else {
-					$cache_data = file_get_contents($cache_dir . $newest_file);
+					$cache_data = file_get_contents($this->cache_dir . $newest_file);
 					$final = json_decode($cache_data, true);
 				}
 			}
@@ -86,15 +86,15 @@ class Tarjimclient {
 	 * Update cache files
 	 */
 	public function updateCache($latest) {
-		$cache_dir = __DIR__ . '/../tmp/cache/locale/';
-		$cache_file_name = $cache_dir.$latest['meta']['results_last_update'];
+		$cache_file_name = $this->cache_dir.$latest['meta']['results_last_update'];
 
 		$locale_last_updated = time();
-		file_put_contents($cache_dir.'locale_last_updated', $locale_last_updated);
+		file_put_contents($this->cache_dir.'locale_last_updated', $locale_last_updated);
 
 		$encoded = json_encode($latest);
 		file_put_contents($cache_file_name, $encoded);
-		chmod($cache_file_name, 0777);
+		$cmd = 'chmod 777 '.$cache_file_name;
+		exec($cmd);
 	}
 
 	/**
@@ -110,10 +110,9 @@ class Tarjimclient {
 		$result = curl_exec($ch);
 
 		if (curl_error($ch)) {
-			$cache_dir = __DIR__ . '/../tmp/cache/locale/';
-			$cache_files = scandir($cache_dir, 1);
+			$cache_files = scandir($this->cache_dir, 1);
 			$newest_file = end($cache_files[1]);
-			$cache_data = file_get_contents($cache_dir . $newest_file);
+			$cache_data = file_get_contents($this->cache_dir . $newest_file);
 			$final = json_decode($cache_data, true);
 			return $final;
 		}
