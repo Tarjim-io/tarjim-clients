@@ -1,3 +1,44 @@
+## Setup
+
+### Cake 
+
+1. clone tarjim_clients int vendors 
+```
+git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
+```
+2. add symlink in vendors/shells to tarjim_clients/cake/tarjim.php in vendors/shells run 
+```
+ln -s ../tarjim_clients/cake/tarjim.php
+```
+3. add symlink to tarjim_controller in controllers in controllers run 
+```
+ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
+```
+4. update require once for tarjim-client in config/core to be 
+```
+require_once _DIR_.'/../vendors/tarjim_clients/cake/tarjim-client.php';
+```
+5. check cake/README for more instructions
+
+### React
+1. clone into src/services 
+```
+git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
+```
+2. delete src/services/LocalizationService if it exists
+3. add symlink in root project dir for update_locale.php run 
+```
+ln  -s src/services/tarjim_clients/react/update_locale.php
+```
+4. update import statements for LocalizationService
+```
+find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarjim_clients\/react/g' {} \;
+```
+5. check react/README for more instructions
+
+
+
+
 ## Update notes
 ### Cake
 1. clear contents of tmp/cache/locale/locale_last_updated
