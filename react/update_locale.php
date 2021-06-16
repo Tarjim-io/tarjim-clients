@@ -2,7 +2,8 @@
 
 $project_id = '3';
 
-$locale_file = __DIR__ . '/src/locale/locale.json';
+$locale_file = __DIR__ . '/../../../locale/locale.json';
+
 $locale = @file_get_contents($locale_file);
 $locale = @json_decode($locale, true);
 
