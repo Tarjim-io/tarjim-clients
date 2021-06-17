@@ -18,7 +18,11 @@ ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
 ```
 require_once _DIR_.'/../vendors/tarjim_clients/cake/tarjim-client.php';
 ```
-5. check cake/README for more instructions
+5. add to setup_environment script 
+```
+git submodule update --init --recursive
+```
+6. check cake/README for more instructions
 
 ### React
 1. clone into src/services 
@@ -34,4 +38,14 @@ ln  -s src/services/tarjim_clients/react/update_locale.php
 ```
 find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarjim_clients\/react/g' {} \;
 ```
-5. check react/README for more instructions
+5. add to setup_environment script 
+```
+git submodule update --init --recursive
+```
+6. check react/README for more instructions
+
+## IMPORTANT
+When pulling from project repo run to update tarjim_clients repo
+```
+git submodule update --init --recursive
+```
