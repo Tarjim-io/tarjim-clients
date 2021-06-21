@@ -20,8 +20,8 @@ require_once _DIR_.'/../vendors/tarjim_clients/cake/tarjim-client.php';
 ```
 5. add to setup_environment script 
 ```
-git submodule update --init --recursive
-git submodule update --remote --merge
+git submodule update --init --recursive  vendors/tarjim_clients
+git submodule update --remote --merge  vendors/tarjim_clients
 ```
 6. check cake/README for more instructions
 
@@ -41,8 +41,8 @@ find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarji
 ```
 5. add to setup_environment script 
 ```
-git submodule update --init --recursive
-git submodule update --remote --merge
+git submodule update --init --recursive src/services/tarjim_clients
+git submodule update --remote --merge src/services/tarjim_clients
 ```
 6. check react/README for more instructions
 
