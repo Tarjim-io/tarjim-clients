@@ -16,7 +16,7 @@ ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
 ```
 4. update require once for tarjim-client in config/core to be 
 ```
-require_once _DIR_.'/../vendors/tarjim_clients/cake/tarjim-client.php';
+require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 ```
 5. add to setup_environment script 
 ```
