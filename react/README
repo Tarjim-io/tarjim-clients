@@ -8,22 +8,28 @@ Setup tarjim in cake before react
 4. run update_locale.php `php update_locale.php`
 5. add `php update_locale.php` to setup_environment script
 6. in App.js: 	
-		import { LocalizationProvider } from 'services/tarjim_clients/react';
-		add <LocalizationService> as parent tag
+	* import { LocalizationProvider } from 'services/tarjim_clients/react';
+	* add <LocalizationService> as parent tag
 7. add to the url params for all api calls skip_get_translations=1
 
 ### Usage:
-		import React, { useContext } from 'react';
-		import { LocalizationContext } from 'services/tarjim_clients/react';
+```
+import React, { useContext } from 'react';
+import { LocalizationContext } from 'services/tarjim_clients/react';
+```
 * Transalte: 
-		const { __T } = useContext(LocalizationContext);
-
+```		
+const { __T } = useContext(LocalizationContext);
+```
 * Change lang:
-		const { setTranslation } = useContext(LocalizationContext);
-		setTranslation(language);
-
+```
+const { setTranslation } = useContext(LocalizationContext);
+setTranslation(language);
+```
 * Get current lang: 
-		cont { getCurrentLocale } = useContext(LocalizationContext);
+```
+cont { getCurrentLocale } = useContext(LocalizationContext);
+```
 
 ## Important notes
 1. in index.js
