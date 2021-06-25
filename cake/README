@@ -61,7 +61,7 @@ Configure::write('TARJIM_APIKEY', YOUR_API_KEY);
 
 public function beforeFilter() {
 	// Skip get translations from tarjim for api calls
-	if (!isset($_GET['skip_get_translations']) || 'true' != $_GET['skip_get_translations']) {
+	if (!isset($_GET['skip_get_translations']) || '1' != $_GET['skip_get_translations']) {
 ## Set active language view variable
 		$active_language = $this->Session->read('Config.language');
 		$this->set('active_language', $active_language);
