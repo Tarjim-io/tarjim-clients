@@ -16,7 +16,9 @@ class Tarjimclient {
 	public function __construct() {
 		$this->project_id = Configure::read('TARJIM_PROJECT_ID');
 		$this->apikey = Configure::read('TARJIM_APIKEY');
-		$this->cache_dir = __DIR__ . '/../../../tmp/cache/locale/';
+		$this->cache_dir = ROOT . '/' . APP_DIR . '/tmp/cache/locale/';
+		$this->cache_backup_file = $this->cache_dir.'translations_backup.json';
+		$this->cache_file = $this->cache_dir.'translations.json';
 	}
 
 	/**
@@ -24,58 +26,62 @@ class Tarjimclient {
 	 * if tarjim result is newer than cache pull from tarjim and update cache
 	 */
 	public function getTranslations() {
-		## Get cache file names in descending order
-		# then get the newest file
-		$cache_files = scandir($this->cache_dir, 1);
-		$newest_file = $cache_files[1];
-		$ttl_in_minutes = 15;
-
-		$time_now = time();
-		$time_now_in_minutes = (int) ($time_now / 60);
-		$locale_last_updated = file_get_contents($this->cache_dir.'locale_last_updated');
-		if (!empty($locale_last_updated)) {
-			$locale_last_updated_in_minutes = (int) ($locale_last_updated / 60);
-			$diff = $time_now_in_minutes - $locale_last_updated_in_minutes;
-		}
-
-		## If cache was updated in last $ttl_in_minutes min get data directly from cache
-		if (isset($diff) && $diff < $ttl_in_minutes && !is_dir($this->cache_dir . $newest_file)) {
-			$cache_data = file_get_contents($this->cache_dir . $newest_file);
-			$final = json_decode($cache_data, true);
+		if (!file_exists($this->cache_file)) {
+			$final = $this->getLatestFromTarjim();
+			$this->updateCache($final);
 		}
 		else {
-			## Pull meta
-			$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $endpoint);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			$ttl_in_minutes = 0;
 
-			$meta = curl_exec($ch);
-
-			if (curl_error($ch)) {
-				$cache_data = file_get_contents($this->cache_dir . $newest_file);
+			$time_now = time();
+			$time_now_in_minutes = (int) ($time_now / 60);
+			$locale_last_updated = filemtime($this->cache_file);
+			$locale_last_updated_in_minutes = (int) ($locale_last_updated / 60);
+			$diff = $time_now_in_minutes - $locale_last_updated_in_minutes;
+			## If cache was updated in last $ttl_in_minutes min get data directly from cache
+			if (isset($diff) && $diff < $ttl_in_minutes) {
+				$cache_data = file_get_contents($this->cache_file);
 				$final = json_decode($cache_data, true);
-				return $final;
 			}
-			curl_close($ch);
+			else {
+				## Pull meta
+				$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_URL, $endpoint);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-			$meta = json_decode($meta, true);
+				$meta = curl_exec($ch);
 
-			if (!is_dir($newest_file)) {
-				if ($newest_file < $meta['meta']['results_last_update']) {
+				## Get translations from cache if curl failed
+				if (curl_error($ch)) {
+					CakeLog::write('tarjim_curl_error', 'Curl error: ' . curl_error($ch));
+					$cache_data = file_get_contents($this->cache_file);
+					$final = json_decode($cache_data, true);
+					return $final;
+				}
+				curl_close($ch);
+
+				$meta = json_decode($meta, true);
+				
+				## Get cache meta tags
+				$cache_meta = file_get_contents($this->cache_file);
+				$cache_meta = json_decode($cache_meta, true);
+				
+				## If cache if older than tarjim get latest and update cache
+				if ($cache_meta['meta']['results_last_update'] < $meta['meta']['results_last_update']) {
 					$final = $this->getLatestFromTarjim();
 					$this->updateCache($final);
 				}
 				else {
-					$cache_data = file_get_contents($this->cache_dir . $newest_file);
+					## Update cache file timestamp
+					touch($this->cache_file);
+					$locale_last_updated = filemtime($this->cache_file);
+
+					$cache_data = file_get_contents($this->cache_file);
 					$final = json_decode($cache_data, true);
 				}
-			}
-			else {
-				$final = $this->getLatestFromTarjim();
-				$this->updateCache($final);
 			}
 		}
 
@@ -86,14 +92,16 @@ class Tarjimclient {
 	 * Update cache files
 	 */
 	public function updateCache($latest) {
-		$cache_file_name = $this->cache_dir.$latest['meta']['results_last_update'];
-
-		$locale_last_updated = time();
-		file_put_contents($this->cache_dir.'locale_last_updated', $locale_last_updated);
+		if (file_exists($this->cache_file)) {
+			$cache_backup = file_get_contents($this->cache_file);
+			file_put_contents($this->cache_backup_file, $cache_backup);
+			$cmd = 'chmod 777 '.$this->cache_backup_file;
+			exec($cmd);
+		}
 
 		$encoded = json_encode($latest);
-		file_put_contents($cache_file_name, $encoded);
-		$cmd = 'chmod 777 '.$cache_file_name;
+		file_put_contents($this->cache_file, $encoded);
+		$cmd = 'chmod 777 '.$this->cache_file;
 		exec($cmd);
 	}
 
