@@ -26,9 +26,8 @@ function useForceUpdate() {
 }
 
 export const LocalizationProvider = ({children}) => {
-	const forceUpdate = useForceUpdate(); 
 	// Emulate force update with react hooks
-//	const forceUpdate = useForceUpdate();
+	const forceUpdate = useForceUpdate(); 
 
 	/**
 	 * Execute on component mount
@@ -58,13 +57,78 @@ export const LocalizationProvider = ({children}) => {
 	/**
 	 *
 	 */
-	const __T = memoize(
-		(key, config) => 
-			i18n.t(typeof key == 'string' ? key.toLowerCase() : key, {defaultValue: key, ...config})
+	const __T = memoize (
+		(key, config) => {
+			let tempKey = key;
+			if (typeof key === 'object' || Array.isArray(key)) {
+				tempKey = key['key'];
+			}
+			
+			let translationString = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey, ...config})
+				
+			if ((typeof key === 'object' || Array.isArray(key)) && translationString) {
+				let mappings = key['mappings'];
+				if (config) {
+					if (config.subkey) {
+						mappings = key['mappings'][config.subkey];
+					}
+				}
+				translationString = _injectValuesInTranslation(translationString, mappings);	
+			}
+			
+			return translationString;
+		}
 		,
 		(key, config) => (config ? key + JSON.stringify(config) : key)
 	);
-	
+
+	/** 
+	 *
+	 */
+	function _injectValuesInTranslation(translationString, mappings) {
+		let regex = /%%.*?%%/g;
+		let valuesKeysArray = translationString.match(regex);
+		translationString = translationString.replaceAll('%','');
+		
+		if (!isEmpty(valuesKeysArray)) {
+			for (let i = 0; i < valuesKeysArray.length; i++) {
+				let valueKeyStripped = valuesKeysArray[i].replaceAll('%','').toLowerCase();
+				regex = new RegExp(valueKeyStripped, 'ig')
+				translationString = translationString.replace(regex, mappings[valueKeyStripped]); 
+			}
+		}
+
+		return translationString;
+	}
+
+	/**
+	 *
+	 */
+	const isEmpty = (variable) => {
+
+		if (variable === false) {
+			return true;
+		}
+
+		if (Array.isArray(variable)) {
+			return variable.length === 0;
+		}
+
+		if (variable === undefined || variable === null) {
+			return true;
+		}
+
+		if (typeof variable === 'string' && variable.trim() === '') {
+			return true;
+		}
+
+		if (typeof variable === 'object') {
+			return (Object.entries(variable).length === 0 &&
+				!(variable instanceof Date));
+		}
+
+		return false;
+	}
 
 	/**
 	 *
