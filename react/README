@@ -57,9 +57,9 @@ key = [
 ]
 ```
 
-pass subkey in react in config ex
+	pass subkey in react in config ex:
 ```
-__T(key, {subkey: subkey1})
+__T(key, {subkey: 'subkey1'})
 ```
 
 ## Important notes
