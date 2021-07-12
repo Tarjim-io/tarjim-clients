@@ -141,7 +141,15 @@ class Tarjimclient {
 ///////////////////////////////
 function _T($key, $do_addslashes = false, $debug = false) {
 	global $_T;
-	$key = strtolower($key);
+
+	## Check for mappings
+	if (is_array($key)) {
+		$mappings = $key['mappings'];
+		$key = strtolower($key['key']);
+	}
+	else {
+		$key = strtolower($key);
+	}
 
 	## Direct match
 	if (isset($_T[$key]) && !empty($_T[$key])) {
@@ -171,7 +179,29 @@ function _T($key, $do_addslashes = false, $debug = false) {
 		$result = addslashes($result);
 	}
 
+	if (isset($mappings)) {
+		$result = injectValuesIntoTranslation($result, $mappings);
+	}
+
 	return $result;
+}
+
+/**
+ *
+ */
+function injectValuesIntoTranslation($translation_string, $mappings) {
+	## Get all keys to replace and save into matches
+	$matches = [];
+	preg_match_all('/%%.*?%%/', $translation_string, $matches);
+
+	## Inject values into result
+	foreach ($matches[0] as $match) {
+		$match_stripped = str_replace('%', '', $match);
+		$regex = '/'.$match.'/';
+		$translation_string = preg_replace($regex, $mappings[$match_stripped], $translation_string);
+	}
+
+	return $translation_string;
 }
 
 
