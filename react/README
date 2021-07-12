@@ -62,6 +62,9 @@ key = [
 __T(key, {subkey: 'subkey1'})
 ```
 
+* Important note
+you might need to camelize the subkey before using it in __T()
+
 ## Important notes
 1. in index.js
 	* Change translationKeys, supportedLanguages, translations with your projects available languages
