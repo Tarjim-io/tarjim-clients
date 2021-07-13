@@ -174,7 +174,7 @@ export const LocalizationProvider = ({children}) => {
 		let localeLastUpdated = locale.meta.results_last_update; 
 
 		try {
-			let response = await fetch(`/api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}`);
+			let response = await fetch(`/api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1`);
 			let result = await response.json();
 			if (result.result.data === LOCALE_UP_TO_DATE) {
 				translations = translationKeys;	
