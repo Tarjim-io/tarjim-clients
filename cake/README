@@ -71,3 +71,17 @@ public function beforeFilter() {
 
 ```
 Usage: _T()
+
+### To use variables in translation value
+* In tarjim.io add the variables you want as %%variable_name%%
+* In view pass the key as an array
+```
+$key = [
+	'key' => 'tarjim_key',
+	'mappings' => [
+		'var1' => 'var1 value',
+	]
+];
+
+_T($key);
+```
