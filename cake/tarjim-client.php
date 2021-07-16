@@ -26,6 +26,8 @@ class Tarjimclient {
 	 * if tarjim result is newer than cache pull from tarjim and update cache
 	 */
 	public function getTranslations() {
+		set_error_handler('tarjimErrorHandler');
+
 		if (!file_exists($this->cache_file)) {
 			$final = $this->getLatestFromTarjim();
 			$this->updateCache($final);
@@ -56,9 +58,13 @@ class Tarjimclient {
 
 				## Get translations from cache if curl failed
 				if (curl_error($ch)) {
-					CakeLog::write('tarjim_curl_error', 'Curl error: ' . curl_error($ch));
+					CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
 					$cache_data = file_get_contents($this->cache_file);
 					$final = json_decode($cache_data, true);
+
+					## Restore default error handler
+					restore_error_handler();
+
 					return $final;
 				}
 				curl_close($ch);
@@ -85,6 +91,9 @@ class Tarjimclient {
 			}
 		}
 
+		## Restore default error handler
+		restore_error_handler();
+
 		return $final;
 	}
 
@@ -92,23 +101,35 @@ class Tarjimclient {
 	 * Update cache files
 	 */
 	public function updateCache($latest) {
+		set_error_handler('tarjimErrorHandler');
 		if (file_exists($this->cache_file)) {
 			$cache_backup = file_get_contents($this->cache_file);
-			file_put_contents($this->cache_backup_file, $cache_backup);
+			$file_put_contents_success = file_put_contents($this->cache_backup_file, $cache_backup);
+			if (!$file_put_contents_success) {
+				CakeLog::write('vendors/tarjim_client/errors', 'file_put_contents error line '. __LINE__);
+			}
 			$cmd = 'chmod 777 '.$this->cache_backup_file;
 			exec($cmd);
 		}
 
 		$encoded = json_encode($latest);
-		file_put_contents($this->cache_file, $encoded);
+		$file_put_contents_success = file_put_contents($this->cache_file, $encoded);
+		if (!$file_put_contents_success) {
+			CakeLog::write('vendors/tarjim_client/errors', 'file_put_contents error line '. __LINE__);
+		}
 		$cmd = 'chmod 777 '.$this->cache_file;
 		exec($cmd);
+		
+		## Restore default error handler
+		restore_error_handler();
 	}
 
 	/**
 	 * Get full results from tarjim
 	 */
 	public function getLatestFromTarjim() {
+		set_error_handler('tarjimErrorHandler');
+
 		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
@@ -118,18 +139,30 @@ class Tarjimclient {
 		$result = curl_exec($ch);
 
 		if (curl_error($ch)) {
-			$cache_files = scandir($this->cache_dir, 1);
-			$newest_file = end($cache_files[1]);
-			$cache_data = file_get_contents($this->cache_dir . $newest_file);
+			CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
+			$cache_data = file_get_contents($this->cache_file);
 			$final = json_decode($cache_data, true);
+
+			## Restore default error handler
+			restore_error_handler();
 			return $final;
 		}
 
 		$decoded = json_decode($result, true);
 
+		## Restore default error handler
+		restore_error_handler();
+
 		return $decoded;
 	}
 
+}
+
+/**
+ * Tarjim error handler
+ */
+function tarjimErrorHandler($errno, $errstr, $errfile, $errline) {
+	CakeLog::write('vendors/tarjim_client/errors', 'Tarjim client error file '.$errfile.' (line '.$errline.'): '.$errstr);
 }
 
 /**
@@ -140,6 +173,7 @@ class Tarjimclient {
  */
 ///////////////////////////////
 function _T($key, $do_addslashes = false, $debug = false) {
+	set_error_handler('tarjimErrorHandler');
 	global $_T;
 
 	## Check for mappings
@@ -182,6 +216,9 @@ function _T($key, $do_addslashes = false, $debug = false) {
 	if (isset($mappings)) {
 		$result = injectValuesIntoTranslation($result, $mappings);
 	}
+
+	## Restore default error handler
+	restore_error_handler();
 
 	return $result;
 }
