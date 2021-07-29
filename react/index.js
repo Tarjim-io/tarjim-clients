@@ -2,6 +2,7 @@
 import React , { useState, useEffect, createContext } from 'react';
 import i18n from 'i18n-js';
 import memoize from 'lodash.memoize';
+import DOMPurify from 'isomorphic-dompurify';
 
 // Languages
 import locale from 'locale/locale.json';
@@ -28,6 +29,7 @@ function useForceUpdate() {
 export const LocalizationProvider = ({children}) => {
 	// Emulate force update with react hooks
 	const forceUpdate = useForceUpdate(); 
+	
 
 	/**
 	 * Execute on component mount
@@ -76,7 +78,18 @@ export const LocalizationProvider = ({children}) => {
 				translationString = _injectValuesInTranslation(translationString, mappings);	
 			}
 			
-			return translationString;
+			let renderAsHtml = false;
+			let sanitized = DOMPurify.sanitize(translationString)
+
+			if (sanitized.match(/<[^>]+>/g)) {
+				renderAsHtml = true;
+			}
+
+			if (renderAsHtml) {
+				return <span dangerouslySetInnerHTML={{__html: sanitized}}></span>
+			}
+
+			return sanitized;
 		}
 		,
 		(key, config) => (config ? key + JSON.stringify(config) : key)
