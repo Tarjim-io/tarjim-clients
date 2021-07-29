@@ -19,6 +19,7 @@ class Tarjimclient {
 		$this->cache_dir = ROOT . '/' . APP_DIR . '/tmp/cache/locale/';
 		$this->cache_backup_file = $this->cache_dir.'translations_backup.json';
 		$this->cache_file = $this->cache_dir.'translations.json';
+		$this->sanitized_html_cache_file = $this->cache_dir.'sanitized_html.json';
 	}
 
 	/**
@@ -104,19 +105,13 @@ class Tarjimclient {
 		set_error_handler('tarjimErrorHandler');
 		if (file_exists($this->cache_file)) {
 			$cache_backup = file_get_contents($this->cache_file);
-			$file_put_contents_success = file_put_contents($this->cache_backup_file, $cache_backup);
-			if (!$file_put_contents_success) {
-				CakeLog::write('vendors/tarjim_client/errors', 'file_put_contents error line '. __LINE__);
-			}
+			file_put_contents($this->cache_backup_file, $cache_backup);
 			$cmd = 'chmod 777 '.$this->cache_backup_file;
 			exec($cmd);
 		}
 
 		$encoded = json_encode($latest);
-		$file_put_contents_success = file_put_contents($this->cache_file, $encoded);
-		if (!$file_put_contents_success) {
-			CakeLog::write('vendors/tarjim_client/errors', 'file_put_contents error line '. __LINE__);
-		}
+		file_put_contents($this->cache_file, $encoded);
 		$cmd = 'chmod 777 '.$this->cache_file;
 		exec($cmd);
 		
@@ -216,11 +211,119 @@ function _T($key, $do_addslashes = false, $debug = false) {
 	if (isset($mappings)) {
 		$result = injectValuesIntoTranslation($result, $mappings);
 	}
+	
+	$sanitized_result = sanitizeResult($key, $result);
 
 	## Restore default error handler
 	restore_error_handler();
 
+	return $sanitized_result;
+}
+
+/**
+ * Remove <script> tags from translation value
+ * Prevent js injection
+ */
+function sanitizeResult($key, $result) {
+	$unacceptable_tags = ['script'];
+	$unacceptable_attribute_values = [
+		'function',
+		'{.*}',
+	];
+
+	if ($result != strip_tags($result)) {
+		$Tarjimclient = new Tarjimclient;
+		## Get meta from cache
+		$cache_data = file_get_contents($Tarjimclient->cache_file);
+		$cache_data = json_decode($cache_data, true);
+		$cache_results_checksum = $cache_data['meta']['results_checksum'];
+		if (file_exists($Tarjimclient->sanitized_html_cache_file)) {
+			global $_T;
+			$sanitized_html_cache_file = $Tarjimclient->sanitized_html_cache_file;
+			$cache_file = $Tarjimclient->cache_file;
+
+
+			## Get sanitized cache
+			$sanitized_cache = file_get_contents($sanitized_html_cache_file);
+			$sanitized_cache = json_decode($sanitized_cache, true);
+			$sanitized_cache_checksum = $sanitized_cache['meta']['results_checksum'];
+			$active_language = $_T['meta']['active_language'];
+			$sanitized_cache_results = $sanitized_cache['results'][$active_language];
+			
+			## If locale haven't been updated and key exists in sanitized cache
+			# Get from cache
+			if ($cache_results_checksum == $sanitized_cache_checksum && array_key_exists($key, $sanitized_cache_results)) {
+				return $sanitized_cache['results'][$active_language][$key];
+			}
+		}
+
+		$dom = new DOMDocument;
+		$dom->loadHTML('<?xml encoding="utf-8" ?>'.$result, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+		
+		## Remove unawanted nodes 
+		foreach ($unacceptable_tags as $tag) {
+			## Get unwanted nodes
+			$unwanted_nodes = $dom->getElementsByTagName($tag);
+			## Copy unwanted nodes to loop over without updating length on removal of nodes
+			$unwanted_nodes_copy = iterator_to_array($unwanted_nodes);
+			foreach ($unwanted_nodes_copy as $unwanted_node) {
+				## Delete node
+				$unwanted_node->parentNode->removeChild($unwanted_node);
+			}
+		}
+		
+		$nodes = $dom->getElementsByTagName('*');
+		
+		foreach ($nodes as $node) {
+			## Remove unwanted attributes
+			if ($node->hasAttributes()) {
+				$attributes_copy = iterator_to_array($node->attributes);
+				foreach ($attributes_copy as $attr) {
+					foreach ($unacceptable_attribute_values as $value) {
+						$regex = '/'.$value.'/is';
+						if (preg_match_all($regex, $attr->nodeValue)) {
+							$node->removeAttribute($attr->nodeName);
+							break;
+						}
+					}	
+				}
+			}	
+		}
+
+		$sanitized = $dom->saveHTML($dom);
+		$stripped = str_replace(['<p>', '</p>'], '', $sanitized);
+		cacheSanitizedHTML($key, $stripped, $cache_results_checksum);
+		return $stripped; 
+	}
+
 	return $result;
+}
+
+/**
+ *
+ */
+function cacheSanitizedHTML($key, $sanitized, $cache_results_checksum) {
+	global $_T;
+	$Tarjimclient = new Tarjimclient;
+	$sanitized_html_cache_file = $Tarjimclient->sanitized_html_cache_file;
+	$active_language = $_T['meta']['active_language'];
+
+	if (file_exists($sanitized_html_cache_file)) {
+		$sanitized_html_cache = file_get_contents($sanitized_html_cache_file);
+		$sanitized_html_cache = json_decode($sanitized_html_cache, true);
+
+		## If translation cache checksum is changed overwrite sanitized cache
+		if ($sanitized_html_cache['meta']['results_checksum'] != $cache_results_checksum) {
+			$sanitized_html_cache = [];
+		}
+	}
+
+	$sanitized_html_cache['meta']['results_checksum'] = $cache_results_checksum;
+	$sanitized_html_cache['results'][$active_language][$key] = $sanitized;
+	$encoded_sanitized_html_cache = json_encode($sanitized_html_cache);
+	file_put_contents($sanitized_html_cache_file, $encoded_sanitized_html_cache);	
+	$cmd = 'chmod 777 '.$Tarjimclient->sanitized_html_cache_file;
+	exec($cmd);
 }
 
 /**
