@@ -79,10 +79,6 @@ export const LocalizationProvider = ({children}) => {
 			else {
 				translationString = translation;
 			}
-
-			if (config && config.isPageTitle) {
-				return translationString;
-			}
 				
 			if ((typeof key === 'object' || Array.isArray(key)) && translationString) {
 				let mappings = key['mappings'];
@@ -96,6 +92,10 @@ export const LocalizationProvider = ({children}) => {
 			
 			let renderAsHtml = false;
 			let sanitized = DOMPurify.sanitize(translationString)
+
+			if (config && config.isPageTitle) {
+				return translationString;
+			}
 
 			if (sanitized.match(/<[^>]+>/g)) {
 				renderAsHtml = true;

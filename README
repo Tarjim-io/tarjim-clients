@@ -1,3 +1,35 @@
+## Update notes
+
+### Cake
+- Params for _T() changed to _T($key, $config, $debug)
+- In app_controller->setTranslation() add 
+```
+$_T['meta']['active_language'] = $language;
+```
+- For page titles add config = ['is_page_title' => true];
+ex: 
+```
+<title><?=_T($title_for_layout, ['is_page_title' => true])?> | Panda7</title>
+```
+and if title was set in controller remove call to _T() from controller
+ex: 
+```
+before:
+$this->set('title_for_layout', _T('Condo'));
+
+now:
+$this->set('title_for_layout', 'Condo');
+```
+
+### React
+- For page title pass in config isPageTitle: true;
+ex
+```
+__T('Insurance', {isPageTitle: true})
+```
+
+
+
 ## Setup
 
 ### Cake 
