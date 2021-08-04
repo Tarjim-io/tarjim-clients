@@ -34,7 +34,7 @@ class Tarjimclient {
 			$this->updateCache($final);
 		}
 		else {
-			$ttl_in_minutes = 0;
+			$ttl_in_minutes = 15;
 
 			$time_now = time();
 			$time_now_in_minutes = (int) ($time_now / 60);
@@ -42,7 +42,7 @@ class Tarjimclient {
 			$locale_last_updated_in_minutes = (int) ($locale_last_updated / 60);
 			$diff = $time_now_in_minutes - $locale_last_updated_in_minutes;
 			## If cache was updated in last $ttl_in_minutes min get data directly from cache
-			if (isset($diff) && $diff < $ttl_in_minutes) {
+			if ((isset($diff) && $diff < $ttl_in_minutes)) {
 				$cache_data = file_get_contents($this->cache_file);
 				$final = json_decode($cache_data, true);
 			}
@@ -167,35 +167,45 @@ function tarjimErrorHandler($errno, $errstr, $errfile, $errline) {
  * Read from the global $_T
  */
 ///////////////////////////////
-function _T($key, $do_addslashes = false, $debug = false) {
+function _T($key, $config = [], $debug = false) {
 	set_error_handler('tarjimErrorHandler');
 	global $_T;
+	$assign_tarjim_id = false;
 
 	## Check for mappings
 	if (is_array($key)) {
 		$mappings = $key['mappings'];
+		$original_key = $key;
 		$key = strtolower($key['key']);
 	}
 	else {
+		$original_key = $key;
 		$key = strtolower($key);
 	}
 
 	## Direct match
 	if (isset($_T[$key]) && !empty($_T[$key])) {
 		$mode = 'direct';
-		$result = $_T[$key];
+		if (is_array($_T[$key])) {
+			$result = $_T[$key]['value'];
+			$tarjim_id = $_T[$key]['id'];
+			$assign_tarjim_id = true;
+		}
+		else {
+			$result = $_T[$key];
+		}
 	}
 
 	## Fallback key
 	if (isset($_T[$key]) && empty($_T[$key])) {
 		$mode = 'key_fallback';
-		$result = $key;
+		$result = $original_key;
 	}
 
 	## Empty fall back (return key)
 	if (!isset($_T[$key])) {
 		$mode = 'empty_key_fallback';
-		$result = $key;
+		$result = $original_key;
 	}
 
 	## Debug mode
@@ -204,7 +214,7 @@ function _T($key, $do_addslashes = false, $debug = false) {
 		echo $key . "\n" .$result;
 	}
 
-	if ($do_addslashes) {
+	if (isset($config['do_addslashes']) && $config['do_addslashes']) {
 		$result = addslashes($result);
 	}
 
@@ -214,10 +224,27 @@ function _T($key, $do_addslashes = false, $debug = false) {
 	
 	$sanitized_result = sanitizeResult($key, $result);
 
+
+	if (isset($config['is_page_title']) && $config['is_page_title']) {
+		return strip_tags($sanitized_result);
+	}
+
+	if ($assign_tarjim_id) {
+		$sanitized_result = assignTarjimId($tarjim_id, $sanitized_result);
+	}
+
 	## Restore default error handler
 	restore_error_handler();
 
 	return $sanitized_result;
+}
+
+/**
+ *
+ */
+function assignTarjimId($id, $value) {
+	$result = sprintf('<span data-tid="%s">%s</span>', $id, $value);
+	return $result;
 }
 
 /**
@@ -237,7 +264,16 @@ function sanitizeResult($key, $result) {
 		$cache_data = file_get_contents($Tarjimclient->cache_file);
 		$cache_data = json_decode($cache_data, true);
 		$cache_results_checksum = $cache_data['meta']['results_checksum'];
-		if (file_exists($Tarjimclient->sanitized_html_cache_file)) {
+		
+		## Get active language
+		if (isset($_T['meta']) && isset($_T['meta']['active_language'])) {
+			$active_language = $_T['meta']['active_language'];
+		}
+		elseif (isset($_SESSION['Config']['language'])) {
+			$active_language = $_SESSION['Config']['language'];
+		}
+
+		if (file_exists($Tarjimclient->sanitized_html_cache_file) && isset($active_language)) {
 			global $_T;
 			$sanitized_html_cache_file = $Tarjimclient->sanitized_html_cache_file;
 			$cache_file = $Tarjimclient->cache_file;
@@ -247,7 +283,6 @@ function sanitizeResult($key, $result) {
 			$sanitized_cache = file_get_contents($sanitized_html_cache_file);
 			$sanitized_cache = json_decode($sanitized_cache, true);
 			$sanitized_cache_checksum = $sanitized_cache['meta']['results_checksum'];
-			$active_language = $_T['meta']['active_language'];
 			$sanitized_cache_results = $sanitized_cache['results'][$active_language];
 			
 			## If locale haven't been updated and key exists in sanitized cache
@@ -306,7 +341,17 @@ function cacheSanitizedHTML($key, $sanitized, $cache_results_checksum) {
 	global $_T;
 	$Tarjimclient = new Tarjimclient;
 	$sanitized_html_cache_file = $Tarjimclient->sanitized_html_cache_file;
-	$active_language = $_T['meta']['active_language'];
+
+	## Get active language
+	if (isset($_T['meta']) && isset($_T['meta']['active_language'])) {
+		$active_language = $_T['meta']['active_language'];
+	}
+	elseif (isset($_SESSION['Config']['language'])) {
+		$active_language = $_SESSION['Config']['language'];
+	}
+	else {
+		return;
+	}
 
 	if (file_exists($sanitized_html_cache_file)) {
 		$sanitized_html_cache = file_get_contents($sanitized_html_cache_file);
