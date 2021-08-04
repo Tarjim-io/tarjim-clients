@@ -66,7 +66,23 @@ export const LocalizationProvider = ({children}) => {
 				tempKey = key['key'];
 			}
 			
-			let translationString = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey, ...config})
+			let translation = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey, ...config})
+
+			let translationString 
+			let assignTarjimId = false;
+			let translationId
+			if (typeof translation === 'object' || Array.isArray(translation)) {
+				translationString = translation.value;
+				translationId = translation.id;
+				assignTarjimId = true;
+			}
+			else {
+				translationString = translation;
+			}
+
+			if (config && config.isPageTitle) {
+				return translationString;
+			}
 				
 			if ((typeof key === 'object' || Array.isArray(key)) && translationString) {
 				let mappings = key['mappings'];
@@ -83,6 +99,10 @@ export const LocalizationProvider = ({children}) => {
 
 			if (sanitized.match(/<[^>]+>/g)) {
 				renderAsHtml = true;
+			}
+
+			if (assignTarjimId) {
+				return <span data-tid={translationId} dangerouslySetInnerHTML={{__html: sanitized}}></span>
 			}
 
 			if (renderAsHtml) {
