@@ -22,41 +22,40 @@ Configure::write('TARJIM_APIKEY', YOUR_API_KEY);
  - Note: add project language cases to switch statement below
 
 ```
-	/**
+  /**
    *
    */
   public function setTranslation($namespace = 'backend', $language = 'en') {
-		global $_T;
+    global $_T;
 
-		## Support older language keys
-		switch($language) {
-		case 'en':
-		case 'eng':
-		case 'english':
-			$language = 'en';
-			break;
+    ## Support older language keys
+    switch($language) {
+    case 'en':
+    case 'eng':
+    case 'english':
+      $language = 'en';
+      break;
 
-		case 'fr':
-		case 'fre':
-		case 'french':
-			$language = 'fr';
-			break;
+    case 'fr':
+    case 'fre':
+    case 'french':
+      $language = 'fr';
+      break;
 
-		default:
-			$language = 'fr';
-			break;
+    default:
+      $language = 'fr';
+      break;
 
-		}
+    }
 
     ## Set translation keys
     $Tarjim = new Tarjimclient();
     $_T = $Tarjim->getTranslations();
-		## for Cakex view translation (non-json encoded)
-		//debug($_T);die();
-		$_T = $_T['results'][$namespace][$language];
+    ## for Cakex view translation (non-json encoded)
+    $_T = $_T['results'][$namespace][$language];
+    $_T['meta']['active_language'] = $language;
 
     $this->set('_T', $_T);
-    #$this->set('translationArray', json_encode($_T));
   }
 
 public function beforeFilter() {
