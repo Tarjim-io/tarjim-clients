@@ -5,12 +5,13 @@ Setup tarjim in cake before react
 1. install i18n-js `npm install i18n-js`
 2. install lodash `npm install lodash`
 3. edit project_id in update_locale.php
-4. run update_locale.php `php update_locale.php`
-5. add `php update_locale.php` to setup_environment script
-6. in App.js: 	
+4. install isomorphic-dompurify `npm i isomorphic-dompurify`
+5. run update_locale.php `php update_locale.php`
+6. add `php update_locale.php` to setup_environment script
+7. in App.js: 	
 	* import { LocalizationProvider } from 'services/tarjim_clients/react';
 	* add <LocalizationService> as parent tag
-7. add to the url params for all api calls skip_get_translations=1
+8. add to the url params for all api calls skip_get_translations=1
 
 ### Usage:
 ```
