@@ -2,9 +2,44 @@
 
 ### Cake
 - Params for _T() changed to _T($key, $config, $debug)
-- In app_controller->setTranslation() add 
+- In app_controller->setTranslation() add $_T['meta']['active_language'] = $language;
+
 ```
-$_T['meta']['active_language'] = $language;
+public function setTranslation($namespace = 'backend', $language = 'en') {
+    global $_T;
+
+    ## Support older language keys
+    switch($language) {
+    case 'en':
+    case 'eng':
+    case 'english':
+      $language = 'en';
+      break;
+
+    case 'fr':
+    case 'fre':
+    case 'french':
+      $language = 'fr';
+      break;
+
+    default:
+      $language = 'fr';
+      break;
+
+    }   
+
+    ## Set translation keys
+    $Tarjim = new Tarjimclient();
+    $_T = $Tarjim->getTranslations();
+    ## for Cakex view translation (non-json encoded)
+    //debug($_T);die();
+    $_T = $_T['results'][$namespace][$language];
+    <mark>$_T['meta']['active_language'] = $language;</mark>
+
+    $this->set('_T', $_T);
+    #$this->set('translationArray', json_encode($_T));
+  }
+
 ```
 - For page titles add config = ['is_page_title' => true];
 ex: 
@@ -34,19 +69,22 @@ __T('Insurance', {isPageTitle: true})
 
 ### Cake 
 
-1. clone tarjim_clients int vendors 
+1. clone tarjim_clients into vendors 
 ```
+cd vendors
 git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
 ```
 2. add symlink in vendors/shells to tarjim_clients/cake/tarjim.php in vendors/shells run 
 ```
+cd vendors/shells
 ln -s ../tarjim_clients/cake/tarjim.php
 ```
 3. add symlink to tarjim_controller in controllers in controllers run 
 ```
+cd controllers
 ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
 ```
-4. update require once for tarjim-client in config/core to be 
+4. update require once for tarjim-client in config/core.php to be 
 ```
 require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 ```
