@@ -1,7 +1,7 @@
 ## Update notes
 
 ### Cake
-- Params for _T() changed to _T($key, $config, $debug)
+- Params for _T() changed to _T($key, $config = [], $debug = false)
 - In app_controller->setTranslation() add $_T['meta']['active_language'] = $language;
 
 ```
