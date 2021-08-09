@@ -12,7 +12,7 @@ Router::connect('/api/v1/update-locale-cache',
 5. add following to config/core:
 ```	
 ## Tarjim / Translations Load Tarjim.io translation client
-require_once __DIR__.'/../vendors/tarjim_clients/cake/tarjim-client.php';
+require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 Configure::write('TARJIM_PROJECT_ID', YOUR_PROJECT_ID);
 Configure::write('TARJIM_DEFAULT_NAMESPACE', YOUR_DEFAULT_NAMESPACE);
 Configure::write('TARJIM_APIKEY', YOUR_API_KEY); 
