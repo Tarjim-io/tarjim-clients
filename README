@@ -59,6 +59,7 @@ $this->set('title_for_layout', 'Condo');
 ```
 
 ### React
+- install isomorphic-dompurify `npm i isomorphic-dompurify`
 - For page title pass in config isPageTitle: true;
 ex
 ```
@@ -100,10 +101,11 @@ git submodule update --remote --merge  vendors/tarjim_clients
 ### React
 1. clone into src/services 
 ```
+cd src/services
 git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
 ```
 2. delete src/services/LocalizationService if it exists
-3. add symlink in root project dir for update_locale.php run 
+3. add symlink in root project dir for update_locale.php run
 ```
 ln  -s src/services/tarjim_clients/react/update_locale.php
 ```
