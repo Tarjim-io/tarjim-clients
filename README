@@ -34,13 +34,15 @@ public function setTranslation($namespace = 'backend', $language = 'en') {
     ## for Cakex view translation (non-json encoded)
     //debug($_T);die();
     $_T = $_T['results'][$namespace][$language];
-    **$_T['meta']['active_language'] = $language;**
+    
+    $_T['meta']['active_language'] = $language;
 
     $this->set('_T', $_T);
     #$this->set('translationArray', json_encode($_T));
   }
 
 ```
+
 - For page titles add config = ['is_page_title' => true];
 ex: 
 ```
