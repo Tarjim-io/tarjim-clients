@@ -49,7 +49,7 @@ setTranslation(language);
 ```
 * Get current lang: 
 ```
-cont { getCurrentLocale } = useContext(LocalizationContext);
+const { getCurrentLocale } = useContext(LocalizationContext);
 ```
 
 ### To use variables in translation value
