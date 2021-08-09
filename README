@@ -59,6 +59,7 @@ $this->set('title_for_layout', 'Condo');
 ```
 
 ### React
+- install isomorphic-dompurify `npm i isomorphic-dompurify`
 - For page title pass in config isPageTitle: true;
 ex
 ```
