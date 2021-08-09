@@ -95,7 +95,7 @@ require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 git submodule update --init --recursive  vendors/tarjim_clients
 git submodule update --remote --merge  vendors/tarjim_clients
 ```
-6. check cake/README for more instructions
+6. check [cake/README](https://bitbucket.org/joylab/tarjim_clients/src/master/cake/) for more instructions
 
 ### React
 1. clone into src/services 
@@ -116,7 +116,7 @@ find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarji
 git submodule update --init --recursive src/services/tarjim_clients
 git submodule update --remote --merge src/services/tarjim_clients
 ```
-6. check react/README for more instructions
+6. check [react/README](https://bitbucket.org/joylab/tarjim_clients/src/master/react/) for more instructions
 
 ## IMPORTANT
 When pulling from project repo run to update tarjim_clients repo
