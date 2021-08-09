@@ -97,31 +97,6 @@ require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 git submodule update --init --recursive  vendors/tarjim_clients
 git submodule update --remote --merge  vendors/tarjim_clients
 ```
-6. check [cake/README](https://bitbucket.org/joylab/tarjim_clients/src/master/cake/) for more instructions
 
 ### React
-1. clone into src/services 
-```
-git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
-```
-2. delete src/services/LocalizationService if it exists
-3. add symlink in root project dir for update_locale.php run 
-```
-ln  -s src/services/tarjim_clients/react/update_locale.php
-```
-4. update import statements for LocalizationService
-```
-find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarjim_clients\/react/g' {} \;
-```
-5. add to setup_environment script 
-```
-git submodule update --init --recursive src/services/tarjim_clients
-git submodule update --remote --merge src/services/tarjim_clients
-```
-6. check [react/README](https://bitbucket.org/joylab/tarjim_clients/src/master/react/) for more instructions
-
-## IMPORTANT
-When pulling from project repo run to update tarjim_clients repo
-```
-git submodule update --init --recursive
-```
+#### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/react/)
