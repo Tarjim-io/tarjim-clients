@@ -1,7 +1,27 @@
-1. mkdir tmp/cache/locale
-2. touch tmp/cache/locale/locale_last_updated
-3. chmod -R 777 tmp/cache/locale/
-4. add following routes:
+1. clone tarjim_clients into vendors 
+```
+cd vendors
+git submodule add git@bitbucket.org:joylab/tarjim_clients.git
+```
+2. add symlink in vendors/shells to tarjim_clients/cake/tarjim.php in root project dir run 
+```
+cd vendors/shells
+ln -s ../tarjim_clients/cake/tarjim.php
+```
+3. add symlink to tarjim_controller in controllers in root project dir run 
+```
+cd controllers
+ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
+```
+4. add to setup_environment script 
+```
+git submodule update --init --recursive  vendors/tarjim_clients
+git submodule update --remote --merge  vendors/tarjim_clients
+mkdir -p ./tmp/cache/locale
+```
+5. mkdir tmp/cache/locale
+6. chmod -R 777 tmp/cache/locale/
+7. add following routes:
 ```
 ## Translation routes
 Router::connect('/api/v1/get-latest-frontend-locale',
@@ -9,7 +29,7 @@ Router::connect('/api/v1/get-latest-frontend-locale',
 Router::connect('/api/v1/update-locale-cache',
 ['controller' => 'tarjim', 'action' => 'updateLocaleCache', 'method' => 'GET']);
 ```
-5. add following to config/core:
+8. add following to config/core:
 ```	
 ## Tarjim / Translations Load Tarjim.io translation client
 require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
@@ -17,8 +37,8 @@ Configure::write('TARJIM_PROJECT_ID', YOUR_PROJECT_ID);
 Configure::write('TARJIM_DEFAULT_NAMESPACE', YOUR_DEFAULT_NAMESPACE);
 Configure::write('TARJIM_APIKEY', YOUR_API_KEY); 
 ```
-6. update TARJIM_PROJECT_ID
-7. add to app_controller:
+9. update TARJIM_PROJECT_ID
+10. add to app_controller:
  - Note: add project language cases to switch statement below
 
 ```
@@ -61,7 +81,7 @@ Configure::write('TARJIM_APIKEY', YOUR_API_KEY);
 public function beforeFilter() {
 	// Skip get translations from tarjim for api calls
 	if (!isset($_GET['skip_get_translations']) || '1' != $_GET['skip_get_translations']) {
-## Set active language view variable
+        ## Set active language view variable
 		$active_language = $this->Session->read('Config.language');
 		$this->set('active_language', $active_language);
 		$this->setTranslation(Configure::read('TARJIM_DEFAULT_NAMESPACE'), $active_language);
