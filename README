@@ -71,7 +71,7 @@ __T('Insurance', {isPageTitle: true})
 ## Setup
 
 ### Cake
-#### [First time setup instructions]((https://bitbucket.org/joylab/tarjim_clients/src/master/cake/README)
+#### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/cake)
 
 1. clone tarjim_clients into vendors 
 ```
