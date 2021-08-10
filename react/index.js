@@ -93,8 +93,8 @@ export const LocalizationProvider = ({children}) => {
 			let renderAsHtml = false;
 			let sanitized = DOMPurify.sanitize(translationString)
 
-			if (config && config.isPageTitle) {
-				return translationString;
+			if (config && config.skipAssignTid) {
+				return sanitized;
 			}
 
 			if (sanitized.match(/<[^>]+>/g)) {
