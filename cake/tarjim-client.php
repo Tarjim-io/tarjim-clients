@@ -247,7 +247,7 @@ function _T($key, $config = [], $debug = false) {
  *
  */
 function assignTarjimId($id, $value) {
-	$result = sprintf('<span data-tid="%s">%s</span>', $id, $value);
+	$result = sprintf('<span data-tid=%s>%s</span>', $id, $value);
 	return $result;
 }
 
