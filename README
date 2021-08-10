@@ -20,12 +20,24 @@ $this->set('title_for_layout', _T('Condo'));
 now:
 $this->set('title_for_layout', 'Condo');
 ```
+#### IMPORTANT
+For placeholders and dropdown/select and email subject options pass in config skip_assign_tid = true
+```
+<input placeholder=<?=_T('placeholder', ["skip_assign_tid" => true])?> />
+```
+skip_assign_tid can also be used for page titles
+
 
 ### React
 - For page title pass in config isPageTitle: true;
 ex
 ```
 __T('Insurance', {isPageTitle: true})
+```
+#### IMPORTANT
+For placeholder and dropdown/select and page title options pass skipAssignTid = true
+```
+__T('key', {skipAssignTid: true})
 ```
 
 

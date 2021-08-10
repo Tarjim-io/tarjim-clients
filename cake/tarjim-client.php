@@ -229,6 +229,10 @@ function _T($key, $config = [], $debug = false) {
 		return strip_tags($sanitized_result);
 	}
 
+	if (isset($config['skip_assign_tid']) && $config['skip_assign_tid']) {
+		return strip_tags($sanitized_result);
+	}
+
 	if ($assign_tarjim_id) {
 		$sanitized_result = assignTarjimId($tarjim_id, $sanitized_result);
 	}
