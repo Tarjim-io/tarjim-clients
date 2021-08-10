@@ -1,11 +1,48 @@
 ## Update notes
 
 ### Cake
-- Params for _T() changed to _T($key, $config, $debug)
-- In app_controller->setTranslation() add 
+- Params for _T() changed to _T($key, $config = [], $debug = false)
+- In app_controller->setTranslation() add $_T['meta']['active_language'] = $language;
+
 ```
-$_T['meta']['active_language'] = $language;
+public function setTranslation($namespace = 'backend', $language = 'en') {
+    global $_T;
+
+    ## Support older language keys
+    switch($language) {
+    case 'en':
+    case 'eng':
+    case 'english':
+      $language = 'en';
+      break;
+
+    case 'fr':
+    case 'fre':
+    case 'french':
+      $language = 'fr';
+      break;
+
+    default:
+      $language = 'fr';
+      break;
+
+    }   
+
+    ## Set translation keys
+    $Tarjim = new Tarjimclient();
+    $_T = $Tarjim->getTranslations();
+    ## for Cakex view translation (non-json encoded)
+    //debug($_T);die();
+    $_T = $_T['results'][$namespace][$language];
+    
+    $_T['meta']['active_language'] = $language;
+
+    $this->set('_T', $_T);
+    #$this->set('translationArray', json_encode($_T));
+  }
+
 ```
+
 - For page titles add config = ['is_page_title' => true];
 ex: 
 ```
@@ -29,6 +66,7 @@ skip_assign_tid can also be used for page titles
 
 
 ### React
+- install isomorphic-dompurify `npm i isomorphic-dompurify`
 - For page title pass in config isPageTitle: true;
 ex
 ```
@@ -44,21 +82,25 @@ __T('key', {skipAssignTid: true})
 
 ## Setup
 
-### Cake 
+### Cake
+#### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/cake)
 
-1. clone tarjim_clients int vendors 
+1. clone tarjim_clients into vendors 
 ```
-git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
+cd vendors
+git submodule add git@bitbucket.org:joylab/tarjim_clients.git
 ```
-2. add symlink in vendors/shells to tarjim_clients/cake/tarjim.php in vendors/shells run 
+2. add symlink in vendors/shells to tarjim_clients/cake/tarjim.php in root project dir run 
 ```
+cd vendors/shells
 ln -s ../tarjim_clients/cake/tarjim.php
 ```
-3. add symlink to tarjim_controller in controllers in controllers run 
+3. add symlink to tarjim_controller in controllers in root project dir run 
 ```
+cd controllers
 ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
 ```
-4. update require once for tarjim-client in config/core to be 
+4. update require once for tarjim-client in config/core.php to be 
 ```
 require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 ```
@@ -67,31 +109,6 @@ require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
 git submodule update --init --recursive  vendors/tarjim_clients
 git submodule update --remote --merge  vendors/tarjim_clients
 ```
-6. check cake/README for more instructions
 
 ### React
-1. clone into src/services 
-```
-git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
-```
-2. delete src/services/LocalizationService if it exists
-3. add symlink in root project dir for update_locale.php run 
-```
-ln  -s src/services/tarjim_clients/react/update_locale.php
-```
-4. update import statements for LocalizationService
-```
-find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarjim_clients\/react/g' {} \;
-```
-5. add to setup_environment script 
-```
-git submodule update --init --recursive src/services/tarjim_clients
-git submodule update --remote --merge src/services/tarjim_clients
-```
-6. check react/README for more instructions
-
-## IMPORTANT
-When pulling from project repo run to update tarjim_clients repo
-```
-git submodule update --init --recursive
-```
+#### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/react/)
