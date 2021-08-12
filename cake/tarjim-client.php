@@ -233,6 +233,10 @@ function _T($key, $config = [], $debug = false) {
 		return strip_tags($sanitized_result);
 	}
 
+	if (isset($config['skip_tid']) && $config['skip_tid']) {
+		return strip_tags($sanitized_result);
+	}
+
 	if ($assign_tarjim_id) {
 		$sanitized_result = assignTarjimId($tarjim_id, $sanitized_result);
 	}
