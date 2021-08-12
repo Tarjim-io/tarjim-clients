@@ -225,15 +225,15 @@ function _T($key, $config = [], $debug = false) {
 	$sanitized_result = sanitizeResult($key, $result);
 
 
-	if (isset($config['is_page_title']) && $config['is_page_title']) {
+	if (isset($config['is_page_title'])) {
 		return strip_tags($sanitized_result);
 	}
 
-	if (isset($config['skip_assign_tid']) && $config['skip_assign_tid']) {
+	if (isset($config['skip_assign_tid'])) {
 		return strip_tags($sanitized_result);
 	}
 
-	if (isset($config['skip_tid']) && $config['skip_tid']) {
+	if (isset($config['skip_tid'])) {
 		return strip_tags($sanitized_result);
 	}
 
