@@ -93,14 +93,11 @@ Usage: _T()
 
 ### To use variables in translation value
 * In tarjim.io add the variables you want as %%variable_name%%
-* In view pass the key as an array
+* In view pass the mapping in config 
 ```
-$key = [
-	'key' => 'tarjim_key',
+_T($key, [
 	'mappings' => [
 		'var1' => 'var1 value',
 	]
-];
-
-_T($key);
+]);
 ```

@@ -172,15 +172,11 @@ function _T($key, $config = [], $debug = false) {
 	global $_T;
 	$assign_tarjim_id = false;
 
+	$key = strtolower($key);
+
 	## Check for mappings
-	if (is_array($key)) {
-		$mappings = $key['mappings'];
-		$original_key = $key;
-		$key = strtolower($key['key']);
-	}
-	else {
-		$original_key = $key;
-		$key = strtolower($key);
+	if (isset($config['mappings'])) {
+		$mappings = $config['mappings'];
 	}
 
 	## Direct match
