@@ -81,12 +81,11 @@ export const LocalizationProvider = ({children}) => {
 				translationString = translation;
 			}
 				
-			if ((typeof key === 'object' || Array.isArray(key)) && translationString) {
-				let mappings = key['mappings'];
-				if (config) {
-					if (config.subkey) {
-						mappings = key['mappings'][config.subkey];
-					}
+			//if ((typeof key === 'object' || Array.isArray(key)) && translationString) {
+			if (config && !isEmpty(config.mappings) && translationString) {
+				let mappings = config.mappings;
+				if (config.subkey) {
+					mappings = mappings[config.subkey];
 				}
 				translationString = _injectValuesInTranslation(translationString, mappings);	
 			}
