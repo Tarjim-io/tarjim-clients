@@ -15,3 +15,6 @@ if (empty($locale) || $locale['meta']['results_last_update'] < $api_result['meta
   file_put_contents($locale_file, json_encode($api_result));
   echo "Locale file updated" . PHP_EOL;
 }
+else {
+  echo "Locale up to date" . PHP_EOL;
+}

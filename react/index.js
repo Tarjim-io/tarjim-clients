@@ -13,6 +13,7 @@ const LOCALE_UP_TO_DATE = 'locale up to date';
 
 export const LocalizationContext = createContext({
 	__T: () => {},
+	__TS: () => {},
 	setTranslation: () => {},
   getCurrentLocale: () => {}
 });
@@ -93,27 +94,39 @@ export const LocalizationProvider = ({children}) => {
 			let renderAsHtml = false;
 			let sanitized = DOMPurify.sanitize(translationString)
 
-			if (config && config.skipAssignTid) {
-				return sanitized;
-			}
-
 			if (sanitized.match(/<[^>]+>/g)) {
 				renderAsHtml = true;
 			}
 
-			if (assignTarjimId) {
+			if (
+				(typeof translation.skip_tid !== 'undefined' && translation.skip_tid === true) ||
+				(typeof translation.type !== 'undefined' && translation.type === 'image') ||
+				(config && config.skipAssignTid) ||
+				(config && config.skipTid)
+			) {
+				assignTarjimId = false;
+				renderAsHtml = false;
+			}
+
+			if (assignTarjimId || renderAsHtml) {
 				return <span data-tid={translationId} dangerouslySetInnerHTML={{__html: sanitized}}></span>
 			}
-
-			if (renderAsHtml) {
-				return <span dangerouslySetInnerHTML={{__html: sanitized}}></span>
+			else {
+				return sanitized;
 			}
-
-			return sanitized;
 		}
 		,
 		(key, config) => (config ? key + JSON.stringify(config) : key)
 	);
+	 
+	/**
+	 * Shorthand for __T(key, {skipTid: true})
+	 * skip assiging tid and wrapping in span
+	 * used for images, placeholder, select options, title...
+	 */
+	function __TS(key) {
+		return __T(key, {skipTid: true});
+	}
 
 	/** 
 	 *
@@ -258,6 +271,7 @@ export const LocalizationProvider = ({children}) => {
 		<LocalizationContext.Provider
 			value={{
 				__T,
+				__TS,
         setTranslation: setTranslation,
         getCurrentLocale: getCurrentLocale
 			}}>
