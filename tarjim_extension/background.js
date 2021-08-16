@@ -62,6 +62,9 @@ chrome.webNavigation.onCompleted.addListener(_listener);
 // Add listener for active tab change
 chrome.tabs.onActivated.addListener(_listener);
 
+// Add listener for active window change
+chrome.windows.onFocusChanged.addListener(_listener);
+
 // Add listener for url changes
 chrome.tabs.onUpdated.addListener((tabId) => {
   chrome.scripting.executeScript({

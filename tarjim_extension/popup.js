@@ -38,7 +38,7 @@ chrome.storage.sync.get('projectName', (storage) => {
   }
   else {
     chrome.storage.sync.get('projectId', (storage) => {
-      projectNameDiv.innerHTML ='Project: ' +  projectName + '<br>' +'Project id: ' + storage.projectId;
+      projectNameDiv.innerHTML ='Project: ' +  projectName + ' (id: ' + storage.projectId + ')';
     })
   }
 })
