@@ -250,6 +250,15 @@ function _T($key, $config = [], $debug = false) {
 }
 
 /**
+ * Shorthand for _T($key, ['skip_tid'])
+ * Skip assigning data-tid and wrapping in span
+ * used with images, placeholders, title, select/dropdown
+ */
+function _TS($key) {
+	return _T($key, ['skip_tid']);
+}
+
+/**
  *
  */
 function assignTarjimId($id, $value) {
