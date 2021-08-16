@@ -196,6 +196,19 @@ function _T($key, $config = [], $debug = false) {
 		}
 	}
 
+	## Check config keys and skip assigning tid and wrapping in a span for certain keys
+	# ex: page title, input placeholders, image hrefs...
+	if (
+		(isset($config['type']) && 'image' == $config['type']) ||
+		(isset($config['is_page_title']) || in_array('is_page_title', $config)) ||
+		(isset($config['skip_assign_tid']) || in_array('skip_assign_tid', $config)) ||
+		(isset($config['skip_tid']) || in_array('skip_tid', $config)) ||
+		(isset($_T[$key]['skip_tid']) && $_T[$key]['skip_tid']) ||
+		(isset($_T[$key]['type']) && 'image' == $_T[$key]['type'])
+	) {
+		$assign_tarjim_id = false;
+	}
+
 	## Fallback key
 	if (isset($_T[$key]) && empty($_T[$key])) {
 		$mode = 'key_fallback';
@@ -224,27 +237,16 @@ function _T($key, $config = [], $debug = false) {
 	
 	$sanitized_result = sanitizeResult($key, $result);
 
-
-	if (isset($config['is_page_title']) || in_array('is_page_title', $config)) {
-		return strip_tags($sanitized_result);
-	}
-
-	if (isset($config['skip_assign_tid']) || in_array('skip_assign_tid', $config)) {
-		return strip_tags($sanitized_result);
-	}
-
-	if (isset($config['skip_tid']) || in_array('skip_tid', $config)) {
-		return strip_tags($sanitized_result);
-	}
-
-	if ($assign_tarjim_id) {
-		$sanitized_result = assignTarjimId($tarjim_id, $sanitized_result);
-	}
-
 	## Restore default error handler
 	restore_error_handler();
 
-	return $sanitized_result;
+	if ($assign_tarjim_id) {
+		$final_result = assignTarjimId($tarjim_id, $sanitized_result);
+		return $final_result;
+	}
+	else {
+		return strip_tags($sanitized_result);
+	}
 }
 
 /**
