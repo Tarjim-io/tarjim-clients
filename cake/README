@@ -18,10 +18,13 @@ ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
 git submodule update --init --recursive  vendors/tarjim_clients
 git submodule update --remote --merge  vendors/tarjim_clients
 mkdir -p ./tmp/cache/locale
+mkdir -p ./tmp/logs/vendors/tarjim_client
 ```
 5. mkdir tmp/cache/locale
 6. chmod -R 777 tmp/cache/locale/
-7. add following routes:
+7. mkdir tmp/logs/vendors/tarjim_client
+8. chmod -R 777 tmp/logs/vendors/tarjim_client/
+9. add following routes:
 ```
 ## Translation routes
 Router::connect('/api/v1/get-latest-frontend-locale',
@@ -29,7 +32,7 @@ Router::connect('/api/v1/get-latest-frontend-locale',
 Router::connect('/api/v1/update-locale-cache',
 ['controller' => 'tarjim', 'action' => 'updateLocaleCache', 'method' => 'GET']);
 ```
-8. add following to config/core:
+10. add following to config/core:
 ```	
 ## Tarjim / Translations Load Tarjim.io translation client
 require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
@@ -37,8 +40,8 @@ Configure::write('TARJIM_PROJECT_ID', YOUR_PROJECT_ID);
 Configure::write('TARJIM_DEFAULT_NAMESPACE', YOUR_DEFAULT_NAMESPACE);
 Configure::write('TARJIM_APIKEY', YOUR_API_KEY); 
 ```
-9. update TARJIM_PROJECT_ID
-10. add to app_controller:
+11. update TARJIM_PROJECT_ID
+12. add to app_controller:
  - Note: add project language cases to switch statement below
 
 ```
