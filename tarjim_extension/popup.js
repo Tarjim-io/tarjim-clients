@@ -109,7 +109,8 @@ async function highlightTarjimNodes() {
           e.preventDefault();
           // Open tarjim edit page
           window.open(`https://tarjim.io/translationvalues/edit/${projectId}/${tarjimId}?ext=1`, "extension_popup", "width=600,height=700,status=no,scrollbars=yes,resizable=yes");
-          // Remove event listener 
+          e.stopPropagation();
+          return false;
         });
       }
     })

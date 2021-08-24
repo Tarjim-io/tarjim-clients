@@ -54,33 +54,30 @@ const { getCurrentLocale } = useContext(LocalizationContext);
 
 ### To use variables in translation value
 * In tarjim.io add the variables you want as %%variable_name%%
-* In react pass the key as an array
+* In react pass the mappings in config
 ```
-key = [
-	'key' => 'tarjim_key',
-	'mappings' => [
-		'var1' => 'var1 value',
-	]
-]
+__T(key, {
+	mappings: {
+		'var1': 'var1 value',
+	}
+)
+
 ```
 * If the mapping array contains nested arrays ex:
 ```
-key = [
-	'key' => 'tarjim_key',
-	'mappings' => [
-		'subkey1' => [
-			'var1' => 'var1 value',
-		],
-		'subkey2' => [
-			'var1' => 'var1 value',
-		],
-	]
-]
+'mappings': {
+	'subkey1': {
+		'var1': 'var1 value',
+	},
+	'subkey2': {
+		'var1': 'var1 value',
+	},
+}
 ```
 
 	pass subkey in react in config ex:
 ```
-__T(key, {subkey: 'subkey1'})
+__T(key, {mappings: mappings, subkey: 'subkey1'})
 ```
 
 * Important note
