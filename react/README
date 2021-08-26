@@ -85,6 +85,7 @@ you might need to camelize the subkey before using it in __T()
 
 ### Using tarjim for media
 * call __TM() function with spread operator (...)
+* __TI() is an alias of __TM()
 * usage ex:
 ```
 attributes = {

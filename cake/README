@@ -107,12 +107,13 @@ _T($key, [
 
 ### Using tarjim for media
 * call _TM() function
+* _TI() is an alias of _TM()
 * usage ex:
 ```
 $attributes = [
 	class => 'img-class-name',
 	width => '100px'
-}
+]
 <img <?=_TM($key, $attributes)?> />
 
 renders <img src='src' class='img-class-name' width='100px' />
