@@ -112,7 +112,7 @@ _T($key, [
 $attributes = [
 	class => 'img-class-name',
 	width => '100px'
-}
+]
 <img <?=_TM($key, $attributes)?> />
 
 renders <img src='src' class='img-class-name' width='100px' />
