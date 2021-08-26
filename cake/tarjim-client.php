@@ -172,6 +172,7 @@ function _T($key, $config = [], $debug = false) {
 	global $_T;
 	$assign_tarjim_id = false;
 
+	$original_key = $key;
 	$key = strtolower($key);
 
 	## Check for mappings
