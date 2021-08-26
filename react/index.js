@@ -14,6 +14,8 @@ const LOCALE_UP_TO_DATE = 'locale up to date';
 export const LocalizationContext = createContext({
 	__T: () => {},
 	__TS: () => {},
+	__TM: () => {},
+	__TI: () => {},
 	setTranslation: () => {},
   getCurrentLocale: () => {}
 });
@@ -67,31 +69,28 @@ export const LocalizationProvider = ({children}) => {
 				tempKey = key['key'];
 			}
 			
-			let translation = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey, ...config})
-
-			let translationString 
-			let assignTarjimId = false;
-			let translationId
-			if (typeof translation === 'object' || Array.isArray(translation)) {
-				translationString = translation.value;
-				translationId = translation.id;
-				assignTarjimId = true;
-			}
-			else {
-				translationString = translation;
+			let translationValue = getTranslationValue(key);
+			let value = translationValue.value;
+			let translationId = translationValue.translationId;
+			let assignTarjimId = translationValue.assignTarjimId;
+			let translation = translationValue.fullValue;
+			
+			// If type is image call __TM() instead
+			if (translation.type && translation.type === 'image') {
+				return __TM(key, config);
 			}
 				
-			//if ((typeof key === 'object' || Array.isArray(key)) && translationString) {
-			if (config && !isEmpty(config.mappings) && translationString) {
+			//if ((typeof key === 'object' || Array.isArray(key)) && value) {
+			if (config && !isEmpty(config.mappings) && value) {
 				let mappings = config.mappings;
 				if (config.subkey) {
 					mappings = mappings[config.subkey];
 				}
-				translationString = _injectValuesInTranslation(translationString, mappings);	
+				value = _injectValuesInTranslation(value, mappings);	
 			}
 			
 			let renderAsHtml = false;
-			let sanitized = DOMPurify.sanitize(translationString)
+			let sanitized = DOMPurify.sanitize(value)
 
 			if (sanitized.match(/<[^>]+>/g)) {
 				renderAsHtml = true;
@@ -99,7 +98,6 @@ export const LocalizationProvider = ({children}) => {
 
 			if (
 				(typeof translation.skip_tid !== 'undefined' && translation.skip_tid === true) ||
-				(typeof translation.type !== 'undefined' && translation.type === 'image') ||
 				(config && config.skipAssignTid) ||
 				(config && config.skipTid)
 			) {
@@ -125,6 +123,100 @@ export const LocalizationProvider = ({children}) => {
 	 */
 	function __TS(key) {
 		return __T(key, {skipTid: true});
+	}
+
+	/**
+	 * Alias for __TM()
+	 */
+	function __TI(key, attributes) {
+		return __TM(key, attributes);
+	}
+
+	/**
+	 * Used for media
+	 * attributes for media eg: class, id, width...
+	 * If received key doesn't have type:image return __T(key) instead
+	 */
+	function __TM(key, attributes={}) {
+		let translationValue = getTranslationValue(key);
+		let value = translationValue.value;
+		let translationId = translationValue.translationId;
+		let translation = translationValue.fullValue;
+
+		if (translation.type && translation.type === 'image') {
+			let attributesFromRemote = {};
+
+			let src = translation.value;
+			let translationId = translation.id;
+			if (!isEmpty(translation.attributes)) {
+				attributesFromRemote = translation.attributes;
+			}
+
+			// Merge attributes from tarjim.io and those received from view
+			// for attributes that exist in both arrays take the value from tarjim.io
+			attributes = {
+				...attributes,
+				...attributesFromRemote
+			}
+
+			let sanitized = DOMPurify.sanitize(value)
+
+			let response = {
+				'src': sanitized,
+				'data-tid': translationId,
+			}
+
+			for (let [attribute, attributeValue] of Object.entries(attributes)) {
+				// Avoid react warnings by changing class to className
+				if (attribute === 'class') {
+					attribute = 'className';
+				}
+				response[attribute] = attributeValue;	
+			}
+
+			return response;
+		}
+		else {
+			return __T(key);
+		}
+	}
+
+	/**
+	 * Get value for key from translations object 
+	 * returns array with
+	 * value => string to render or media src
+	 * translationId => id to assign to data-tid
+	 * assignTarjimId => boolean
+	 * fullValue => full object for from $_T to retreive extra attributes if needed
+	 */
+	function getTranslationValue(key) {
+		let tempKey = key;
+		if (typeof key === 'object' || Array.isArray(key)) {
+			tempKey = key['key'];
+		}
+
+		let translation = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey})
+
+		let translationString 
+		let assignTarjimId = false;
+		let translationId
+		if (typeof translation === 'object' || Array.isArray(translation)) {
+			translationString = translation.value;
+			translationId = translation.id;
+			assignTarjimId = true;
+		}
+		else {
+			translationString = translation;
+		}
+
+		let result = {
+			'value': translationString,
+			'translationId': translationId,
+			'assignTarjimId': assignTarjimId,
+			'fullValue': translation
+		};
+
+		return result;
 	}
 
 	/** 
@@ -271,6 +363,8 @@ export const LocalizationProvider = ({children}) => {
 			value={{
 				__T,
 				__TS,
+				__TM,
+				__TI,
         setTranslation: setTranslation,
         getCurrentLocale: getCurrentLocale
 			}}>

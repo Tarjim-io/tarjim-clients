@@ -101,3 +101,21 @@ _T($key, [
 	]
 ]);
 ```
+
+### Using tarjim for media
+* call _TM() function
+* usage ex:
+```
+$attributes = [
+	class => 'img-class-name',
+	width => '100px'
+}
+<img <?=_TM($key, $attributes)?> />
+
+renders <img src='src' class='img-class-name' width='100px' />
+```
+* **Important note for media attributes**: 
+attributes received from tarjim.io will overwrite attributes received from the function call if same attribute exists in both
+so in previous example if this key has attributes: {class: 'class-from-tarjim', height:'200px'} __TM will return 
+<img src='src' class='class-from-tarjim' width='100px' height='200px'/> 
+notice that width and height are both added
