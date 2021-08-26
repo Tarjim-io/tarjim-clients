@@ -106,10 +106,11 @@ _T($key, [
 ```
 
 ### Using tarjim for media
-* call _TM() function
+* call _TM($key, $attributes=[]) function
 * _TI() is an alias of _TM()
 * usage ex:
 ```
+// optional
 $attributes = [
 	class => 'img-class-name',
 	width => '100px'
