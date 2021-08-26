@@ -271,7 +271,7 @@ function _TM($key, $attributes=[]) {
 		$attributes = array_merge($attributes, $attributes_from_remote);
 		if (!empty($attributes)) {
 			foreach ($attributes as $attribute => $attribute_value) {
-				$final_value .= ' ' .$attribute . '=' . $attribute_value;
+				$final_value .= ' ' .$attribute . '="' . $attribute_value .'"';
 			}
 		}
 
