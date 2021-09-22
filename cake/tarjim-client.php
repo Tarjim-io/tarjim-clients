@@ -169,80 +169,62 @@ function tarjimErrorHandler($errno, $errstr, $errfile, $errline) {
 ///////////////////////////////
 function _T($key, $config = [], $debug = false) {
 	set_error_handler('tarjimErrorHandler');
-	global $_T;
-	$assign_tarjim_id = false;
-
-	$original_key = $key;
-	$key = strtolower($key);
 
 	## Check for mappings
 	if (isset($config['mappings'])) {
 		$mappings = $config['mappings'];
 	}
+	
+	$result = getTarjimValue($key);
+	$value = $result['value'];
+	$assign_tarjim_id = $result['assign_tarjim_id'];
+	$tarjim_id = $result['tarjim_id'];
+	$full_value = $result['full_value'];
 
-	## Direct match
-	if (isset($_T[$key]) && !empty($_T[$key])) {
-		$mode = 'direct';
-		if (is_array($_T[$key])) {
-			$result = $_T[$key]['value'];
-			$tarjim_id = $_T[$key]['id'];
-			$assign_tarjim_id = true;
-		}
-		else {
-			$result = $_T[$key];
-		}
+	## If type = image call _TM()
+	if ( 
+		(isset($config['type']) && 'image' == $config['type']) ||
+		(isset($full_value['type']) && 'image' == $full_value['type'])
+	) {
+		return _TM($key);
 	}
 
 	## Check config keys and skip assigning tid and wrapping in a span for certain keys
 	# ex: page title, input placeholders, image hrefs...
 	if (
-		(isset($config['type']) && 'image' == $config['type']) ||
 		(isset($config['is_page_title']) || in_array('is_page_title', $config)) ||
 		(isset($config['skip_assign_tid']) || in_array('skip_assign_tid', $config)) ||
 		(isset($config['skip_tid']) || in_array('skip_tid', $config)) ||
-		(isset($_T[$key]['skip_tid']) && $_T[$key]['skip_tid']) ||
-		(isset($_T[$key]['type']) && 'image' == $_T[$key]['type'])
+		(isset($full_value['skip_tid']) && $full_value['skip_tid'])
 	) {
 		$assign_tarjim_id = false;
-	}
-
-	## Fallback key
-	if (isset($_T[$key]) && empty($_T[$key])) {
-		$mode = 'key_fallback';
-		$result = $original_key;
-	}
-
-	## Empty fall back (return key)
-	if (!isset($_T[$key])) {
-		$mode = 'empty_key_fallback';
-		$result = $original_key;
 	}
 
 	## Debug mode
 	if (!empty($debug)) {
 		echo $mode ."\n";
-		echo $key . "\n" .$result;
+		echo $key . "\n" .$value;
 	}
 
 	if (isset($config['do_addslashes']) && $config['do_addslashes']) {
-		$result = addslashes($result);
+		$result = addslashes($value);
 	}
 
 	if (isset($mappings)) {
-		$result = injectValuesIntoTranslation($result, $mappings);
+		$value = injectValuesIntoTranslation($value, $mappings);
 	}
 	
-	$sanitized_result = sanitizeResult($key, $result);
+	$sanitized_value = sanitizeResult($key, $value);
 
 	## Restore default error handler
 	restore_error_handler();
 
 	if ($assign_tarjim_id) {
-		$final_result = assignTarjimId($tarjim_id, $sanitized_result);
-		return $final_result;
+		$final_value = assignTarjimId($tarjim_id, $sanitized_value);
+		return $final_value;
 	}
 	else {
-		return strip_tags($sanitized_result);
+		return strip_tags($sanitized_value);
 	}
 }
 
@@ -253,6 +235,114 @@ function _T($key, $config = [], $debug = false) {
  */
 function _TS($key) {
 	return _T($key, ['skip_tid']);
+}
+
+/**
+ * Alias for _TM()
+ */
+function _TI($key, $attributes) {
+	return _TM($key, $attributes);
+}
+
+/**
+ * Used for media 
+ * @param String $key key for media 
+ * @param Array $attributes attributes for media eg: class, id, width... 
+ * If received key doesn't have type:image return _T($key) instead
+ */
+function _TM($key, $attributes=[]) {
+	set_error_handler('tarjimErrorHandler');
+	$result = getTarjimValue($key);
+	$value = $result['value'];
+	$tarjim_id = $result['tarjim_id'];
+	$full_value = $result['full_value'];
+	
+	if (isset($full_value['type']) && 'image' == $full_value['type']) {
+		$attributes_from_remote = [];
+		$sanitized_value = sanitizeResult($key, $value);
+		$final_value = 'src='.$sanitized_value.' data-tid='.$tarjim_id;	
+
+		if (array_key_exists('attributes', $full_value)) {
+			$attributes_from_remote = $full_value['attributes'];
+		}
+
+		## Merge attributes from tarjim.io and those received from view
+		# for attributes that exist in both arrays take the value from tarjim.io
+		$attributes = array_merge($attributes, $attributes_from_remote);
+		if (!empty($attributes)) {
+			foreach ($attributes as $attribute => $attribute_value) {
+				$final_value .= ' ' .$attribute . '="' . $attribute_value .'"';
+			}
+		}
+
+		## Restore default error handler
+		restore_error_handler();
+		return $final_value; 
+	}
+	## Not an image 
+	# fallback to standard _T
+	else {
+		## Restore default error handler
+		restore_error_handler();
+		return _T($key);
+	}
+}
+
+/**
+ * Get value for key from $_T global object
+ * returns array with 
+ * value => string to render or media src 
+ * tarjim_id => id to assign to data-tid
+ * assign_tarjim_id => boolean
+ * full_value => full object for from $_T to retreive extra attributes if needed
+ */
+function getTarjimValue($key) {
+	set_error_handler('tarjimErrorHandler');
+	global $_T;
+
+	$original_key = $key;
+	$key = strtolower($key);
+	$assign_tarjim_id = false;
+	$tarjim_id = '';
+	$full_value = [];
+
+	## Direct match
+	if (isset($_T[$key]) && !empty($_T[$key])) {
+		$mode = 'direct';
+		if (is_array($_T[$key])) {
+			$value = $_T[$key]['value'];
+			$tarjim_id = $_T[$key]['id'];
+			$assign_tarjim_id = true;
+			$full_value = $_T[$key];
+		}
+		else {
+			$value = $_T[$key];
+		}
+	}
+
+	## Fallback key
+	if (isset($_T[$key]) && empty($_T[$key])) {
+		$mode = 'key_fallback';
+		$value = $original_key;
+	}
+
+	## Empty fall back (return key)
+	if (!isset($_T[$key])) {
+		$mode = 'empty_key_fallback';
+		$value = $original_key;
+	}
+
+	$result = [
+		'value' => $value,
+		'tarjim_id' => $tarjim_id,
+		'assign_tarjim_id' => $assign_tarjim_id,
+		'full_value' => $full_value,
+	]; 
+
+	## Restore default error handler
+	restore_error_handler();
+
+	return $result;
 }
 
 /**

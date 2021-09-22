@@ -84,9 +84,11 @@ __T(key, {mappings: mappings, subkey: 'subkey1'})
 you might need to camelize the subkey before using it in __T()
 
 ### Using tarjim for media
-* call __TM() function with spread operator (...)
+* call __TM(key, attributes={}) function with spread operator (...)
+* __TI() is an alias of __TM()
 * usage ex:
 ```
+// optional attributes
 attributes = {
 	class: 'img-class-name',
 	width: '100px'
