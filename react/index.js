@@ -90,12 +90,19 @@ export const LocalizationProvider = ({children}) => {
 			}
 			
 			let renderAsHtml = false;
-			let sanitized = DOMPurify.sanitize(value)
+			let sanitized;	
+			if ('ReactNative' != navigator.product) {
+				sanitized = DOMPurify.sanitize(value)
 
-			if (sanitized.match(/<[^>]+>/g)) {
-				renderAsHtml = true;
+				if (sanitized.match(/<[^>]+>/g)) {
+					renderAsHtml = true;
+				}
+			}
+			else {
+				return  value;
 			}
 
+			//ReactNative
 			if (
 				(typeof translation.skip_tid !== 'undefined' && translation.skip_tid === true) ||
 				(config && config.skipAssignTid) ||
@@ -159,12 +166,24 @@ export const LocalizationProvider = ({children}) => {
 				...attributesFromRemote
 			}
 
-			let sanitized = DOMPurify.sanitize(value)
-
-			let response = {
-				'src': sanitized,
-				'data-tid': translationId,
+			let sanitized;
+			let response;
+			if ('ReactNative' != navigator.product) {
+				sanitized = DOMPurify.sanitize(value);
+				response = {
+					'src': sanitized,
+					'data-tid': translationId,
+				}
 			}
+			else {
+				sanitized = value;
+				response = {
+					'source': {
+						'uri': sanitized
+					}
+				}
+			}
+
 
 			for (let [attribute, attributeValue] of Object.entries(attributes)) {
 				// Avoid react warnings by changing class to className
