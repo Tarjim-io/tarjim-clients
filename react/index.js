@@ -39,11 +39,17 @@ export const LocalizationProvider = ({children}) => {
 	 */
 	useEffect(() => {
 		// Get language from cake
-		let languageElement = document.getElementById('language');
-    let language = 'en';
-    if (languageElement) {
-      language = languageElement.getAttribute('data-language')
-    }
+		let language;
+		if ('ReactNative' != navigator.product) {
+			let languageElement = document.getElementById('language');
+			language = 'en';
+			if (languageElement) {
+				language = languageElement.getAttribute('data-language')
+			}
+		}
+		else {
+			language = 'en';
+		}
 		
 		// Set initial config
 		_setI18nConfig(language);
@@ -102,7 +108,6 @@ export const LocalizationProvider = ({children}) => {
 				return  value;
 			}
 
-			//ReactNative
 			if (
 				(typeof translation.skip_tid !== 'undefined' && translation.skip_tid === true) ||
 				(config && config.skipAssignTid) ||
@@ -309,11 +314,17 @@ export const LocalizationProvider = ({children}) => {
 		translationKeys = updatedTranslationKeys;
 
 		// Get language from cake
-		let languageElement = document.getElementById('language');
-    let language = 'en';
-    if (languageElement) {
-      language = languageElement.getAttribute('data-language')
-    }
+		let language;
+		if ('ReactNative' != navigator.product) {
+			let languageElement = document.getElementById('language');
+			language = 'en';
+			if (languageElement) {
+				language = languageElement.getAttribute('data-language')
+			}
+		}
+		else {
+			language = 'en';
+		}
 		
 		// Update config
 		_setI18nConfig(language);
