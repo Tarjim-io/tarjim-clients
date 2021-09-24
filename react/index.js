@@ -4,7 +4,7 @@ import i18n from 'i18n-js';
 import memoize from 'lodash.memoize';
 import DOMPurify from 'isomorphic-dompurify';
 
-// Languages
+// Config variables 
 import { 
 	defaultLocale as locale,  
 	translationKeys as defaultTranslationKeys,
