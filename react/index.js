@@ -11,7 +11,6 @@ import {
 	supportedLanguages,
 	getTranslationsEndpoint,
 	defaultLanguage,
-	isReactNativeProject
 } from './config';
 
 var translationKeys = defaultTranslationKeys;
@@ -47,7 +46,7 @@ export const LocalizationProvider = ({children}) => {
 	useEffect(() => {
 		// Get language from cake
 		let language;
-		if (!isReactNativeProject) {
+		if ('ReactNative' != navigator.product) {
 			let languageElement = document.getElementById('language');
 			language = defaultLanguage;
 			if (languageElement) {
@@ -104,7 +103,7 @@ export const LocalizationProvider = ({children}) => {
 			
 			let renderAsHtml = false;
 			let sanitized;	
-			if (!isReactNativeProject) {
+			if ('ReactNative' != navigator.product) {
 				sanitized = DOMPurify.sanitize(value)
 
 				if (sanitized.match(/<[^>]+>/g)) {
@@ -180,7 +179,7 @@ export const LocalizationProvider = ({children}) => {
 
 			let sanitized;
 			let response;
-			if (!isReactNativeProject) {
+			if ('ReactNative' != navigator.product) {
 				sanitized = DOMPurify.sanitize(value);
 				response = {
 					'src': sanitized,
@@ -322,7 +321,7 @@ export const LocalizationProvider = ({children}) => {
 
 		// Get language from cake
 		let language;
-		if (!isReactNativeProject) {
+		if ('ReactNative' != navigator.product) {
 			let languageElement = document.getElementById('language');
 			language = defaultLanguage;
 			if (languageElement) {

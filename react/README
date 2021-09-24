@@ -26,7 +26,7 @@ git submodule update --remote --merge src/services/tarjim_clients
 php update_locale.php
 ```
 
-9. edit project_id in update_locale.php
+9. edit config.js.sample and config.php.sample with your values and rename to config.js and config.php
 10. run update_locale.php `php update_locale.php`
 11. in App.js: 	
 	* import { LocalizationProvider } from 'services/tarjim_clients/react';

@@ -22,6 +22,3 @@ export const translationKeys = {};
 let localeLastUpdated = locale.meta.results_last_update;
 let getTranslationsBaseEndpoint = `/api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1`
 export const getTranslationsEndpoint = getTranslationsBaseEndpoint;
-
-// Is the project a react native project
-export isReactNativeProject = false;
