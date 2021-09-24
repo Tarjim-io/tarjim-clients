@@ -5,9 +5,16 @@ import memoize from 'lodash.memoize';
 import DOMPurify from 'isomorphic-dompurify';
 
 // Languages
-import locale from 'locale/locale.json';
+import { 
+	defaultLocale as locale,  
+	translationKeys as defaultTranslationKeys,
+	supportedLanguages,
+	getTranslationsEndpoint,
+	defaultLanguage,
+	isReactNativeProject
+} from './config';
 
-var translationKeys = { en: locale.results.react.en, fr: locale.results.react.fr };
+var translationKeys = defaultTranslationKeys;
 
 const LOCALE_UP_TO_DATE = 'locale up to date';
 
@@ -40,15 +47,15 @@ export const LocalizationProvider = ({children}) => {
 	useEffect(() => {
 		// Get language from cake
 		let language;
-		if ('ReactNative' != navigator.product) {
+		if (!isReactNativeProject) {
 			let languageElement = document.getElementById('language');
-			language = 'en';
+			language = defaultLanguage;
 			if (languageElement) {
 				language = languageElement.getAttribute('data-language')
 			}
 		}
 		else {
-			language = 'en';
+			language = defaultLanguage;
 		}
 		
 		// Set initial config
@@ -97,7 +104,7 @@ export const LocalizationProvider = ({children}) => {
 			
 			let renderAsHtml = false;
 			let sanitized;	
-			if ('ReactNative' != navigator.product) {
+			if (!isReactNativeProject) {
 				sanitized = DOMPurify.sanitize(value)
 
 				if (sanitized.match(/<[^>]+>/g)) {
@@ -173,7 +180,7 @@ export const LocalizationProvider = ({children}) => {
 
 			let sanitized;
 			let response;
-			if ('ReactNative' != navigator.product) {
+			if (!isReactNativeProject) {
 				sanitized = DOMPurify.sanitize(value);
 				response = {
 					'src': sanitized,
@@ -315,15 +322,15 @@ export const LocalizationProvider = ({children}) => {
 
 		// Get language from cake
 		let language;
-		if ('ReactNative' != navigator.product) {
+		if (!isReactNativeProject) {
 			let languageElement = document.getElementById('language');
-			language = 'en';
+			language = defaultLanguage;
 			if (languageElement) {
 				language = languageElement.getAttribute('data-language')
 			}
 		}
 		else {
-			language = 'en';
+			language = defaultLanguage;
 		}
 		
 		// Update config
@@ -335,13 +342,10 @@ export const LocalizationProvider = ({children}) => {
 	 *
 	 */
 	async function getTranslationsFromApi() {
-		let supportedLanguages = ['en', 'fr'];
-		let translations = { en: {}, fr: {} };
-
-		let localeLastUpdated = locale.meta.results_last_update; 
+		let translations;
 
 		try {
-			let response = await fetch(`/api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1`);
+			let response = await fetch(getTranslationsFromApi);
 			let result = await response.json();
 			if (result.result.data === LOCALE_UP_TO_DATE) {
 				translations = translationKeys;	

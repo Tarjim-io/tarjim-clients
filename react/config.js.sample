@@ -1,0 +1,27 @@
+import locale from 'your locale dir';
+
+export const defaultLocale = locale; 
+
+// Default language to use
+export const defaultLanguage = 'en';
+
+// Project's supported languages
+// eg. ['en', 'fr']
+export const supportedLanguages = [];
+
+// Project's namespace
+// eg. 'react'
+export const namespace = '';
+
+// Default translation
+// eg. { en: locale.results[namespace].en, fr: locale.results[namespace].fr }
+export const translationKeys = {};
+
+// get translation endpoint
+// eg. /api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1
+let localeLastUpdated = locale.meta.results_last_update;
+let getTranslationsBaseEndpoint = `/api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1`
+export const getTranslationsEndpoint = getTranslationsBaseEndpoint;
+
+// Is the project a react native project
+export isReactNativeProject = false;

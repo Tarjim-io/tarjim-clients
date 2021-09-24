@@ -51,3 +51,5 @@ Thumbs.db
 # Custom
 *.swp
 tarjim_extension.zip
+react/config.js
+react/config.php

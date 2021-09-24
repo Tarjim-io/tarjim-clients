@@ -1,8 +1,9 @@
-<?php                                                                                                       
+<?php
+require_once(__DIR__.'/config.php');
 
-$project_id = '3';
+$project_id = PROJECT_ID;
 
-$locale_file = __DIR__ . '/../../../locale/locale.json';
+$locale_file = LOCALE_DIR; 
 
 $locale = @file_get_contents($locale_file);
 $locale = @json_decode($locale, true);
