@@ -226,7 +226,6 @@ export const LocalizationProvider = ({children}) => {
 		}
 
 		let translation = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey})
-
 		let translationString 
 		let assignTarjimId = false;
 		let translationId
@@ -341,10 +340,10 @@ export const LocalizationProvider = ({children}) => {
 	 *
 	 */
 	async function getTranslationsFromApi() {
-		let translations;
+		let translations = {};
 
 		try {
-			let response = await fetch(getTranslationsFromApi);
+			let response = await fetch(getTranslationsEndpoint);
 			let result = await response.json();
 			if (result.result.data === LOCALE_UP_TO_DATE) {
 				translations = translationKeys;	
