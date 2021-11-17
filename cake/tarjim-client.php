@@ -257,7 +257,7 @@ function _TM($key, $attributes=[]) {
 	$tarjim_id = $result['tarjim_id'];
 	$full_value = $result['full_value'];
 	
-	if (isset($full_value['type']) && 'image' == $full_value['type']) {
+//	if (isset($full_value['type']) && 'image' == $full_value['type']) {
 		$attributes_from_remote = [];
 		$sanitized_value = sanitizeResult($key, $value);
 		$final_value = 'src='.$sanitized_value.' data-tid='.$tarjim_id;	
@@ -278,14 +278,14 @@ function _TM($key, $attributes=[]) {
 		## Restore default error handler
 		restore_error_handler();
 		return $final_value; 
-	}
-	## Not an image 
-	# fallback to standard _T
-	else {
-		## Restore default error handler
-		restore_error_handler();
-		return _T($key);
-	}
+//	}
+//	## Not an image 
+//	# fallback to standard _T
+//	else {
+//		## Restore default error handler
+//		restore_error_handler();
+//		return _T($key);
+//	}
 }
 
 /**

@@ -161,7 +161,7 @@ export const LocalizationProvider = ({children}) => {
 		let translationId = translationValue.translationId;
 		let translation = translationValue.fullValue;
 
-		if (translation.type && translation.type === 'image') {
+//		if (translation.type && translation.type === 'image') {
 			let attributesFromRemote = {};
 
 			let src = translation.value;
@@ -205,10 +205,10 @@ export const LocalizationProvider = ({children}) => {
 			}
 
 			return response;
-		}
-		else {
-			return __T(key);
-		}
+//		}
+//		else {
+//			return __T(key);
+//		}
 	}
 
 	/**
