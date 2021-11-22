@@ -165,7 +165,7 @@ export const LocalizationProvider = ({children}) => {
 			let attributesFromRemote = {};
 
 			let src = translation.value;
-			let translationId = translation.id;
+			translationId = translation.id;
 			if (!isEmpty(translation.attributes)) {
 				attributesFromRemote = translation.attributes;
 			}
