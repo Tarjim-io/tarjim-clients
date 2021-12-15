@@ -182,12 +182,12 @@ function _T($key, $config = [], $debug = false) {
 	$full_value = $result['full_value'];
 
 	## If type = image call _TM()
-	if ( 
-		(isset($config['type']) && 'image' == $config['type']) ||
-		(isset($full_value['type']) && 'image' == $full_value['type'])
-	) {
-		return _TM($key);
-	}
+//	if ( 
+//		(isset($config['type']) && 'image' == $config['type']) ||
+//		(isset($full_value['type']) && 'image' == $full_value['type'])
+//	) {
+//		return _TM($key);
+//	}
 
 	## Check config keys and skip assigning tid and wrapping in a span for certain keys
 	# ex: page title, input placeholders, image hrefs...
