@@ -88,9 +88,9 @@ export const LocalizationProvider = ({children}) => {
 			let translation = translationValue.fullValue;
 			
 			// If type is image call __TM() instead
-			if (translation.type && translation.type === 'image') {
-				return __TM(key, config);
-			}
+	//		if (translation.type && translation.type === 'image') {
+	//			return __TM(key, config);
+	//		}
 				
 			//if ((typeof key === 'object' || Array.isArray(key)) && value) {
 			if (config && !isEmpty(config.mappings) && value) {
