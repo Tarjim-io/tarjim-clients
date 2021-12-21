@@ -2,3 +2,4 @@
 
 define('PROJECT_ID', '3');
 define('LOCALE_DIR', __DIR__ . '/../../../locale/locale.json');
+define('APIKEY', '12378');

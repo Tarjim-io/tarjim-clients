@@ -5,10 +5,12 @@ $project_id = PROJECT_ID;
 
 $locale_file = LOCALE_DIR; 
 
+$apikey = APIKEY;
+
 $locale = @file_get_contents($locale_file);
 $locale = @json_decode($locale, true);
 
-$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$project_id;
+$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$project_id.'?apikey='.$apikey;
 $result = file_get_contents($endpoint);
 $api_result = json_decode($result, true);
 
