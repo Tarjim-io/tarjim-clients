@@ -51,7 +51,7 @@ class Tarjimclient {
 				$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $endpoint);
-				curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -71,11 +71,11 @@ class Tarjimclient {
 				curl_close($ch);
 
 				$meta = json_decode($meta, true);
-				
+
 				## Get cache meta tags
 				$cache_meta = file_get_contents($this->cache_file);
 				$cache_meta = json_decode($cache_meta, true);
-				
+
 				## If cache if older than tarjim get latest and update cache
 				if ($cache_meta['meta']['results_last_update'] < $meta['meta']['results_last_update']) {
 					$final = $this->getLatestFromTarjim();
@@ -114,7 +114,7 @@ class Tarjimclient {
 		file_put_contents($this->cache_file, $encoded);
 		$cmd = 'chmod 777 '.$this->cache_file;
 		exec($cmd);
-		
+
 		## Restore default error handler
 		restore_error_handler();
 	}
@@ -128,7 +128,7 @@ class Tarjimclient {
 		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$result = curl_exec($ch);
@@ -174,7 +174,7 @@ function _T($key, $config = [], $debug = false) {
 	if (isset($config['mappings'])) {
 		$mappings = $config['mappings'];
 	}
-	
+
 	$result = getTarjimValue($key);
 	$value = $result['value'];
 	$assign_tarjim_id = $result['assign_tarjim_id'];
@@ -182,7 +182,7 @@ function _T($key, $config = [], $debug = false) {
 	$full_value = $result['full_value'];
 
 	## If type = image call _TM()
-//	if ( 
+//	if (
 //		(isset($config['type']) && 'image' == $config['type']) ||
 //		(isset($full_value['type']) && 'image' == $full_value['type'])
 //	) {
@@ -213,7 +213,7 @@ function _T($key, $config = [], $debug = false) {
 	if (isset($mappings)) {
 		$value = injectValuesIntoTranslation($value, $mappings);
 	}
-	
+
 	$sanitized_value = sanitizeResult($key, $value);
 
 	## Restore default error handler
@@ -245,9 +245,9 @@ function _TI($key, $attributes) {
 }
 
 /**
- * Used for media 
- * @param String $key key for media 
- * @param Array $attributes attributes for media eg: class, id, width... 
+ * Used for media
+ * @param String $key key for media
+ * @param Array $attributes attributes for media eg: class, id, width...
  * If received key doesn't have type:image return _T($key) instead
  */
 function _TM($key, $attributes=[]) {
@@ -256,11 +256,11 @@ function _TM($key, $attributes=[]) {
 	$value = $result['value'];
 	$tarjim_id = $result['tarjim_id'];
 	$full_value = $result['full_value'];
-	
+
 //	if (isset($full_value['type']) && 'image' == $full_value['type']) {
 		$attributes_from_remote = [];
 		$sanitized_value = sanitizeResult($key, $value);
-		$final_value = 'src='.$sanitized_value.' data-tid='.$tarjim_id;	
+		$final_value = 'src='.$sanitized_value.' data-tid='.$tarjim_id;
 
 		if (array_key_exists('attributes', $full_value)) {
 			$attributes_from_remote = $full_value['attributes'];
@@ -277,9 +277,9 @@ function _TM($key, $attributes=[]) {
 
 		## Restore default error handler
 		restore_error_handler();
-		return $final_value; 
+		return $final_value;
 //	}
-//	## Not an image 
+//	## Not an image
 //	# fallback to standard _T
 //	else {
 //		## Restore default error handler
@@ -290,8 +290,8 @@ function _TM($key, $attributes=[]) {
 
 /**
  * Get value for key from $_T global object
- * returns array with 
- * value => string to render or media src 
+ * returns array with
+ * value => string to render or media src
  * tarjim_id => id to assign to data-tid
  * assign_tarjim_id => boolean
  * full_value => full object for from $_T to retreive extra attributes if needed
@@ -337,7 +337,7 @@ function getTarjimValue($key) {
 		'tarjim_id' => $tarjim_id,
 		'assign_tarjim_id' => $assign_tarjim_id,
 		'full_value' => $full_value,
-	]; 
+	];
 
 	## Restore default error handler
 	restore_error_handler();
@@ -370,7 +370,7 @@ function sanitizeResult($key, $result) {
 		$cache_data = file_get_contents($Tarjimclient->cache_file);
 		$cache_data = json_decode($cache_data, true);
 		$cache_results_checksum = $cache_data['meta']['results_checksum'];
-		
+
 		## Get active language
 		if (isset($_T['meta']) && isset($_T['meta']['active_language'])) {
 			$active_language = $_T['meta']['active_language'];
@@ -390,7 +390,7 @@ function sanitizeResult($key, $result) {
 			$sanitized_cache = json_decode($sanitized_cache, true);
 			$sanitized_cache_checksum = $sanitized_cache['meta']['results_checksum'];
 			$sanitized_cache_results = $sanitized_cache['results'][$active_language];
-			
+
 			## If locale haven't been updated and key exists in sanitized cache
 			# Get from cache
 			if ($cache_results_checksum == $sanitized_cache_checksum && array_key_exists($key, $sanitized_cache_results)) {
@@ -400,8 +400,8 @@ function sanitizeResult($key, $result) {
 
 		$dom = new DOMDocument;
 		$dom->loadHTML('<?xml encoding="utf-8" ?>'.$result, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-		
-		## Remove unawanted nodes 
+
+		## Remove unawanted nodes
 		foreach ($unacceptable_tags as $tag) {
 			## Get unwanted nodes
 			$unwanted_nodes = $dom->getElementsByTagName($tag);
@@ -412,9 +412,9 @@ function sanitizeResult($key, $result) {
 				$unwanted_node->parentNode->removeChild($unwanted_node);
 			}
 		}
-		
+
 		$nodes = $dom->getElementsByTagName('*');
-		
+
 		foreach ($nodes as $node) {
 			## Remove unwanted attributes
 			if ($node->hasAttributes()) {
@@ -426,15 +426,15 @@ function sanitizeResult($key, $result) {
 							$node->removeAttribute($attr->nodeName);
 							break;
 						}
-					}	
+					}
 				}
-			}	
+			}
 		}
 
 		$sanitized = $dom->saveHTML($dom);
 		$stripped = str_replace(['<p>', '</p>'], '', $sanitized);
 		cacheSanitizedHTML($key, $stripped, $cache_results_checksum);
-		return $stripped; 
+		return $stripped;
 	}
 
 	return $result;
@@ -472,7 +472,7 @@ function cacheSanitizedHTML($key, $sanitized, $cache_results_checksum) {
 	$sanitized_html_cache['meta']['results_checksum'] = $cache_results_checksum;
 	$sanitized_html_cache['results'][$active_language][$key] = $sanitized;
 	$encoded_sanitized_html_cache = json_encode($sanitized_html_cache);
-	file_put_contents($sanitized_html_cache_file, $encoded_sanitized_html_cache);	
+	file_put_contents($sanitized_html_cache_file, $encoded_sanitized_html_cache);
 	$cmd = 'chmod 777 '.$Tarjimclient->sanitized_html_cache_file;
 	exec($cmd);
 }
