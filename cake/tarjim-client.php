@@ -11,15 +11,23 @@
 
 class Tarjimclient {
 	/**
-	 *
+	 * pass config params to construct
 	 */
-	public function __construct() {
-		$this->project_id = Configure::read('TARJIM_PROJECT_ID');
-		$this->apikey = Configure::read('TARJIM_APIKEY');
-		$this->cache_dir = ROOT . '/' . APP_DIR . '/tmp/cache/locale/';
+	public function __construct($project_id = null, $apikey = null, $default_namespace = null, $additional_namespaces = []) {
+		$this->project_id = $project_id;
+		$this->apikey = $apikey;
+		$this->default_namespace = $default_namespace;
+		$this->additional_namespaces = $additional_namespaces;
+		//$this->cache_dir = ROOT . '/' . APP_DIR . '/tmp/cache/locale/';
+		$this->cache_dir = __DIR__.'/cache/';
 		$this->cache_backup_file = $this->cache_dir.'translations_backup.json';
 		$this->cache_file = $this->cache_dir.'translations.json';
 		$this->sanitized_html_cache_file = $this->cache_dir.'sanitized_html.json';
+		$this->logs_dir = __DIR__.'/logs/';
+		$this->errors_file = $this->logs_dir.'errors.log';
+
+		//$cmd = 'touch '.$this->cache_file.' && chmod 666 '.$this->cache_file;
+		//passthru($cmd);
 	}
 
 	/**
@@ -29,7 +37,7 @@ class Tarjimclient {
 	public function getTranslations() {
 		set_error_handler('tarjimErrorHandler');
 
-		if (!file_exists($this->cache_file)) {
+		if (true || !file_exists($this->cache_file)) {
 			$final = $this->getLatestFromTarjim();
 			$this->updateCache($final);
 		}
@@ -59,7 +67,8 @@ class Tarjimclient {
 
 				## Get translations from cache if curl failed
 				if (curl_error($ch)) {
-					CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
+					file_put_contents($this->errors_file, 'Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
+					//CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
 					$cache_data = file_get_contents($this->cache_file);
 					$final = json_decode($cache_data, true);
 
@@ -126,15 +135,17 @@ class Tarjimclient {
 		set_error_handler('tarjimErrorHandler');
 
 		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
+		//$endpoint = 'http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/json/full/6?apikey=1234';
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$result = curl_exec($ch);
+		//debug($result);die();
 
 		if (curl_error($ch)) {
-			CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
+			file_put_contents($this->errors_file, 'Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
 			$cache_data = file_get_contents($this->cache_file);
 			$final = json_decode($cache_data, true);
 
@@ -144,6 +155,11 @@ class Tarjimclient {
 		}
 
 		$decoded = json_decode($result, true);
+		
+		## Forward compatibility		
+		if (array_key_exists('result', $decoded)) {
+			$decoded = $decoded['result']['data'];
+		}
 
 		## Restore default error handler
 		restore_error_handler();
@@ -157,7 +173,9 @@ class Tarjimclient {
  * Tarjim error handler
  */
 function tarjimErrorHandler($errno, $errstr, $errfile, $errline) {
-	CakeLog::write('vendors/tarjim_client/errors', 'Tarjim client error file '.$errfile.' (line '.$errline.'): '.$errstr);
+	$Tarjim = new Tarjimclient();
+	file_put_contents($Tarjim->errors_file, 'Tarjim client error file '.$errfile.' (line '.$errline.'): '.$errstr.PHP_EOL, FILE_APPEND);
+	//CakeLog::write('vendors/tarjim_client/errors', 'Tarjim client error file '.$errfile.' (line '.$errline.'): '.$errstr);
 }
 
 /**
@@ -174,8 +192,13 @@ function _T($key, $config = [], $debug = false) {
 	if (isset($config['mappings'])) {
 		$mappings = $config['mappings'];
 	}
+	
+	$namespace = '';
+	if (isset($config['namespace'])) {
+		$namespace = $config['namespace'];
+	}
 
-	$result = getTarjimValue($key);
+	$result = getTarjimValue($key, $namespace);
 	$value = $result['value'];
 	$assign_tarjim_id = $result['assign_tarjim_id'];
 	$tarjim_id = $result['tarjim_id'];
@@ -252,7 +275,14 @@ function _TI($key, $attributes) {
  */
 function _TM($key, $attributes=[]) {
 	set_error_handler('tarjimErrorHandler');
-	$result = getTarjimValue($key);
+	
+	$namespace = '';
+	if (isset($attributes['namespace'])) {
+		$namespace = $attributes['namespace'];
+		unset($attributes['namespace']);
+	}
+	
+	$result = getTarjimValue($key, $namespace);
 	$value = $result['value'];
 	$tarjim_id = $result['tarjim_id'];
 	$full_value = $result['full_value'];
@@ -296,10 +326,15 @@ function _TM($key, $attributes=[]) {
  * assign_tarjim_id => boolean
  * full_value => full object for from $_T to retreive extra attributes if needed
  */
-function getTarjimValue($key) {
+function getTarjimValue($key, $namespace = '') {
 	set_error_handler('tarjimErrorHandler');
 	global $_T;
+		
+	if (empty($namespace)) {
+		$namespace = $_T['meta']['default_namespace'];
+	}
 
+	$active_language = $_T['meta']['active_language'];
 	$original_key = $key;
 	$key = strtolower($key);
 	$assign_tarjim_id = false;
@@ -307,27 +342,27 @@ function getTarjimValue($key) {
 	$full_value = [];
 
 	## Direct match
-	if (isset($_T[$key]) && !empty($_T[$key])) {
+	if (isset($_T[$namespace][$active_language][$key]) && !empty($_T[$namespace][$active_language][$key])) {
 		$mode = 'direct';
-		if (is_array($_T[$key])) {
-			$value = $_T[$key]['value'];
-			$tarjim_id = $_T[$key]['id'];
+		if (is_array($_T[$namespace][$active_language][$key])) {
+			$value = $_T[$namespace][$active_language][$key]['value'];
+			$tarjim_id = $_T[$namespace][$active_language][$key]['id'];
 			$assign_tarjim_id = true;
-			$full_value = $_T[$key];
+			$full_value = $_T[$namespace][$active_language][$key];
 		}
 		else {
-			$value = $_T[$key];
+			$value = $_T[$namespace][$active_language][$key];
 		}
 	}
 
 	## Fallback key
-	if (isset($_T[$key]) && empty($_T[$key])) {
+	if (isset($_T[$namespace][$active_language][$key]) && empty($_T[$namespace][$active_language][$key])) {
 		$mode = 'key_fallback';
 		$value = $original_key;
 	}
 
 	## Empty fall back (return key)
-	if (!isset($_T[$key])) {
+	if (!isset($_T[$namespace][$active_language][$key])) {
 		$mode = 'empty_key_fallback';
 		$value = $original_key;
 	}
