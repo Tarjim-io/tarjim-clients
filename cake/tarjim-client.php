@@ -66,7 +66,7 @@ class Tarjimclient {
 				$meta = curl_exec($ch);
 
 				## Get translations from cache if curl failed
-				if (curl_error($ch)) {
+				if (!curl_error($ch)) {
 					file_put_contents($this->errors_file, 'Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
 					//CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
 					$cache_data = file_get_contents($this->cache_file);
