@@ -1,21 +1,18 @@
 // Libraries
 import React , { useState, useEffect, createContext } from 'react';
-import i18n from 'i18n-js';
 import memoize from 'lodash.memoize';
 import DOMPurify from 'isomorphic-dompurify';
+import cachedTarjimData from './cache/cachedTarjimData';
 
 // Config variables 
 import { 
-	defaultLocale as locale,  
-	translationKeys as defaultTranslationKeys,
 	supportedLanguages,
-	getTranslationsEndpoint,
 	defaultLanguage,
+	defaultNamespace,
+	additionalNamespaces,
+	tarjimApikey,
+	projectId,
 } from './config';
-
-var translationKeys = defaultTranslationKeys;
-
-const LOCALE_UP_TO_DATE = 'locale up to date';
 
 export const LocalizationContext = createContext({
 	__T: () => {},
@@ -26,24 +23,34 @@ export const LocalizationContext = createContext({
   getCurrentLocale: () => {}
 });
 
-// Create your forceUpdate hook
-function useForceUpdate() {
-
-	// Disable eslint warning for next line
-	// eslint-disable-next-line no-unused-vars
-	const [value, setValue] = useState(0);
-	return () => setValue(value => ++value);
-}
-
 export const LocalizationProvider = ({children}) => {
-	// Emulate force update with react hooks
-	const forceUpdate = useForceUpdate(); 
+
+	var translationKeys = {};
+
+	const LOCALE_UP_TO_DATE = 'locale up to date';
+
+	const getMetaEndpoint = `http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/json/meta/${projectId}?apikey=${tarjimApikey}`;
+	//const getTranslationsEndpoint = `https://tarjim.io/translationkeys/json/full/${projectId}?apikey=${tarjimApikey}`; 
+	const getTranslationsEndpoint = `http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/jsonByNameSpaces`;
+
+	var localeLastUpdated = 0;
+	if (cachedTarjimData.hasOwnProperty('meta') && cachedTarjimData.meta.hasOwnProperty('results_last_update')) {
+		localeLastUpdated = cachedTarjimData.meta.results_last_update;
+	}
 	
+	var cachedTranslations = {};
+	if (cachedTarjimData.hasOwnProperty('results')) {
+		cachedTranslations = cachedTarjimData.results;
+	}
+
+	const [ translations, setTranslations ] = useState(translationKeys);
+	const [ currentLocale, setCurrentLocale ] = useState(defaultLanguage);
 
 	/**
 	 * Execute on component mount
 	 */
 	useEffect(() => {
+		loadInitialTranslations();
 		// Get language from cake
 		let language;
 		if ('ReactNative' != navigator.product) {
@@ -58,14 +65,13 @@ export const LocalizationProvider = ({children}) => {
 		}
 		
 		// Set initial config
-		_setI18nConfig(language);
+	//	_setTarjimConfig(language);
 
     // Set language
 		async function _updateTranslations() {
 			await updateTranslationKeys();
 		}
 		_updateTranslations();
-		forceUpdate();
 
 		// Disable eslint warning for next line
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,19 +80,52 @@ export const LocalizationProvider = ({children}) => {
 	/**
 	 *
 	 */
+	function loadInitialTranslations() {
+		let allNamespaces = additionalNamespaces;
+		allNamespaces.unshift(defaultNamespace);
+
+		allNamespaces.forEach(namespace => {
+			translationKeys[namespace] = {};
+			supportedLanguages.forEach(language => {
+				if (cachedTranslations.hasOwnProperty(namespace)) {
+					if (cachedTranslations[namespace].hasOwnProperty(language)) {
+						translationKeys[namespace][language] = cachedTranslations[namespace][language]; 
+					}
+					else {
+						translationKeys[namespace][language] = {}; 
+					}
+				}
+				else {
+					translationKeys[namespace][language] = {};
+					//_translationKeys[namespace][language] = {}; 
+				}
+			})
+		});
+
+		console.log(translationKeys);
+	}
+
+	/**
+	 *
+	 */
 	const __T = memoize (
 		(key, config) => {
+			let namespace = defaultNamespace;
+			if (config && config.namespace) {
+				namespace = config.namespace;
+			}
+
 			let tempKey = key;
 			if (typeof key === 'object' || Array.isArray(key)) {
 				tempKey = key['key'];
 			}
 			
-			let translationValue = getTranslationValue(key);
+			let translationValue = getTranslationValue(key, namespace);
 			let value = translationValue.value;
 			let translationId = translationValue.translationId;
 			let assignTarjimId = translationValue.assignTarjimId;
 			let translation = translationValue.fullValue;
-			
+
 			// If type is image call __TM() instead
 	//		if (translation.type && translation.type === 'image') {
 	//			return __TM(key, config);
@@ -156,59 +195,63 @@ export const LocalizationProvider = ({children}) => {
 	 * If received key doesn't have type:image return __T(key) instead
 	 */
 	function __TM(key, attributes={}) {
-		let translationValue = getTranslationValue(key);
+		let namespace = defaultNamespace;
+
+		if (attributes && attributes.namespace) {
+			namespace = attributes.namespace;
+		}
+
+		let translationValue = getTranslationValue(key, namespace);
 		let value = translationValue.value;
 		let translationId = translationValue.translationId;
 		let translation = translationValue.fullValue;
 
-//		if (translation.type && translation.type === 'image') {
-			let attributesFromRemote = {};
+		let attributesFromRemote = {};
 
-			let src = translation.value;
-			translationId = translation.id;
-			if (!isEmpty(translation.attributes)) {
-				attributesFromRemote = translation.attributes;
+		let src = translation.value;
+		translationId = translation.id;
+		if (!isEmpty(translation.attributes)) {
+			attributesFromRemote = translation.attributes;
+		}
+
+		// Merge attributes from tarjim.io and those received from view
+		// for attributes that exist in both arrays take the value from tarjim.io
+		attributes = {
+			...attributes,
+			...attributesFromRemote
+		}
+
+		let sanitized;
+		let response;
+		if ('ReactNative' != navigator.product) {
+			sanitized = DOMPurify.sanitize(value);
+			response = {
+				'src': sanitized,
+				'data-tid': translationId,
 			}
-
-			// Merge attributes from tarjim.io and those received from view
-			// for attributes that exist in both arrays take the value from tarjim.io
-			attributes = {
-				...attributes,
-				...attributesFromRemote
-			}
-
-			let sanitized;
-			let response;
-			if ('ReactNative' != navigator.product) {
-				sanitized = DOMPurify.sanitize(value);
-				response = {
-					'src': sanitized,
-					'data-tid': translationId,
+		}
+		else {
+			sanitized = value;
+			response = {
+				'source': {
+					'uri': sanitized
 				}
 			}
-			else {
-				sanitized = value;
-				response = {
-					'source': {
-						'uri': sanitized
-					}
-				}
+		}
+
+		if (attributes && attributes.namespace) {
+			delete attributes.namespace;
+		}
+
+		for (let [attribute, attributeValue] of Object.entries(attributes)) {
+			// Avoid react warnings by changing class to className
+			if (attribute === 'class') {
+				attribute = 'className';
 			}
+			response[attribute] = attributeValue;	
+		}
 
-
-			for (let [attribute, attributeValue] of Object.entries(attributes)) {
-				// Avoid react warnings by changing class to className
-				if (attribute === 'class') {
-					attribute = 'className';
-				}
-				response[attribute] = attributeValue;	
-			}
-
-			return response;
-//		}
-//		else {
-//			return __T(key);
-//		}
+		return response;
 	}
 
 	/**
@@ -219,16 +262,26 @@ export const LocalizationProvider = ({children}) => {
 	 * assignTarjimId => boolean
 	 * fullValue => full object for from $_T to retreive extra attributes if needed
 	 */
-	function getTranslationValue(key) {
+	function getTranslationValue(key, namespace) {
 		let tempKey = key;
 		if (typeof key === 'object' || Array.isArray(key)) {
 			tempKey = key['key'];
 		}
 
-		let translation = i18n.t(typeof tempKey == 'string' ? tempKey.toLowerCase() : tempKey, {defaultValue: tempKey})
-		let translationString 
+		let translation;
+		if (
+			translations.hasOwnProperty(namespace) && 
+			translations[namespace][currentLocale].hasOwnProperty(tempKey.toLowerCase())
+		) {
+			translation = translations[namespace][currentLocale][tempKey.toLowerCase()];
+		}
+		else {
+			translation = tempKey;
+		}
+
+		let translationString;
 		let assignTarjimId = false;
-		let translationId
+		let translationId;
 		if (typeof translation === 'object' || Array.isArray(translation)) {
 			translationString = translation.value;
 			translationId = translation.id;
@@ -303,23 +356,19 @@ export const LocalizationProvider = ({children}) => {
 	 *
 	 */
 	async function setTranslation(languageTag, isRTL = false) {
-		// Clear translation cache
-		__T.cache.clear();
-
 		// Set translation
-		i18n.translations = { [languageTag]: translationKeys[languageTag] };
-		i18n.locale = languageTag;
-
-		// Necessary for android
-		forceUpdate();
+		setCurrentLocale(languageTag);
 	}
 
   /**
    *
    */
 	async function updateTranslationKeys() {
-		let updatedTranslationKeys = await getTranslationsFromApi();
-		translationKeys = updatedTranslationKeys;
+		if (await translationsNeedUpdate()) {
+			console.log('22222');
+			let updatedTranslationKeys = await getTranslationsFromApi();
+			translationKeys = updatedTranslationKeys;
+		}
 
 		// Get language from cake
 		let language;
@@ -335,60 +384,77 @@ export const LocalizationProvider = ({children}) => {
 		}
 		
 		// Update config
-		_setI18nConfig(language);
-		forceUpdate();
+		_setTarjimConfig(language);
+	}
+
+	async function translationsNeedUpdate() {
+			let returnValue;
+		try {
+			let response = await fetch(getMetaEndpoint);
+			let result = await response.json();
+			console.log('meta result: ', result);
+			let apiLastUpdated = result.result.data.meta.results_last_update;
+			if (localeLastUpdated >= apiLastUpdated) {
+				console.log('here');
+				returnValue = true;
+			}
+			else {
+				returnValue = false;
+			}
+		} catch(err) {
+			console.log('Translations api error: ', err);
+			returnValue = false;
+		}
+		console.log('translationsNeedUpdate: ',  returnValue);
+		return returnValue;
+
 	}
 
 	/**
 	 *
 	 */
 	async function getTranslationsFromApi() {
-		let translations = {};
+		let _translations = {};
 
 		try {
-			let response = await fetch(getTranslationsEndpoint);
+			let response = await fetch(getTranslationsEndpoint, {
+				method: 'POST',
+				body: JSON.stringify({
+					'project_id': projectId,
+					'namespaces': additionalNamespaces,
+					'apikey': tarjimApikey,
+				}),
+			});
 			let result = await response.json();
-			if (result.result.data === LOCALE_UP_TO_DATE) {
-				translations = translationKeys;	
+			if (result.hasOwnProperty('result')){
+				result = result.result.data
+				console.log('result: ', result);
 			}
-			else {
-				let apiTranslations = result.result.data;
-				for (const lang of supportedLanguages) {
-					translations[lang] = apiTranslations[lang] 
-				}
-			}
+				let apiTranslations = result.results;
+				_translations = apiTranslations;
 		} catch(err) {
 			console.log('Translations api error: ', err);
-			translations = translationKeys;	
+			_translations = translationKeys;	
 		}
 
-		return translations;
+		return _translations;
 	}
 
 	/**
 	 *
 	 */
-	function _setI18nConfig(language = 'en') {
-		// Fallback if no available language fits
-		const fallback = { languageTag: language };
-
-		// Set best available language as translation
-		const { languageTag } = fallback;
-
-		// Clear translation cache
-		__T.cache.clear();
-
-		// Set i18n-js config
-		i18n.translations = { [languageTag]: translationKeys[languageTag] };
-		i18n.locale = languageTag;
+	function _setTarjimConfig(language = 'en') {
+		console.log('TKEYS: ', translationKeys);
+		setCurrentLocale(language);
+		setTranslations(translationKeys);
 	};
 
   /**
    *
    */
   function getCurrentLocale() {
-    return i18n.currentLocale();
-  }
+    return currentLocale;
+	}
 
 	/**
 	 * Render

@@ -1,24 +1,20 @@
-import locale from 'your locale dir';
+// Tarjim project id
+export const projectId = '';
 
-export const defaultLocale = locale; 
+// Tarjim apikey
+export const tarjimApikey = '';
 
 // Default language to use
 export const defaultLanguage = 'en';
 
 // Project's supported languages
-// eg. ['en', 'fr']
-export const supportedLanguages = [];
+// Array of strings eg. ['en', 'fr']
+export const supportedLanguages = ['en', 'fr'];
 
-// Project's namespace
-// eg. 'react'
-export const namespace = '';
+// Project's main/default namespace
+// String eg. 'react'
+export const defaultNamespace = '';
 
-// Default translation
-// eg. { en: locale.results[namespace].en, fr: locale.results[namespace].fr }
-export const translationKeys = {};
-
-// get translation endpoint
-// eg. /api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1
-let localeLastUpdated = locale.meta.results_last_update;
-let getTranslationsBaseEndpoint = `/api/v1/get-latest-frontend-locale?locale_last_updated=${localeLastUpdated}&skip_get_translations=1`
-export const getTranslationsEndpoint = getTranslationsBaseEndpoint;
+// Additional namespaces used in the project
+// Array of strings
+export const additionalNamespaces = [];
