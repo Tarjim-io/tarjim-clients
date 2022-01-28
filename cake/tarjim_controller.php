@@ -179,12 +179,29 @@ class TarjimController extends AppController {
       $frontend_locale_last_updated = $_GET['locale_last_updated'];
     }
 
+		$default_namespace = 'react';
+		if (isset($_GET['default_namespace'])) {
+			$default_namespace = $_GET['default_namespace'];
+		}
+
+		$data = json_decode(file_get_contents('php://input'), true);
+
+		if (isset($data['additional_namespaces'])) {
+			$additional_namespaces = $data['additional_namespaces'];
+		}
+
     $Tarjim = new Tarjimclient();
 		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
     $api_translations = $Tarjim->getTranslations();
 
     if (!empty($api_translations) && $frontend_locale_last_updated < $api_translations['meta']['results_last_update']) {
-      $result = $api_translations['results']['react'];
+			$result[$default_namespace] = $api_translations['results'][$default_namespace];
+			if (isset($additional_namespaces)) {
+				foreach ($additional_namespaces as $namespace) {
+					$result[$namespace] = $api_translations['results'][$namespace];
+				}	
+			}
+
     }
     else {
       $result = 'locale up to date';
