@@ -438,7 +438,7 @@ function sanitizeResult($key, $result) {
 			$active_language = $_SESSION['Config']['language'];
 		}
 
-		if (file_exists($Tarjimclient->sanitized_html_cache_file) && isset($active_language)) {
+		if (file_exists($Tarjimclient->sanitized_html_cache_file) && filesize($Tarjimclient->sanitized_html_cache_file) && isset($active_language)) {
 			global $_T;
 			$sanitized_html_cache_file = $Tarjimclient->sanitized_html_cache_file;
 			$cache_file = $Tarjimclient->cache_file;
@@ -518,7 +518,7 @@ function cacheSanitizedHTML($key, $sanitized, $cache_results_checksum) {
 		return;
 	}
 
-	if (file_exists($sanitized_html_cache_file)) {
+	if (file_exists($sanitized_html_cache_file) && filesize($sanitized_html_cache_file)) {
 		$sanitized_html_cache = file_get_contents($sanitized_html_cache_file);
 		$sanitized_html_cache = json_decode($sanitized_html_cache, true);
 
