@@ -3,7 +3,7 @@ require_once(__DIR__.'/config.php');
 
 $project_id = PROJECT_ID;
 
-$locale_file = LOCALE_DIR; 
+$locale_file = __DIR__ . '/cache/cachedTarjimData.json'; 
 
 $apikey = APIKEY;
 
@@ -11,8 +11,6 @@ $locale = @file_get_contents($locale_file);
 $locale = @json_decode($locale, true);
 
 $endpoint = 'http://tarjim.io/translationkeys/json/full/'.$project_id.'?apikey='.$apikey;
-//$endpoint = 'http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/jsonByNameSpaces';
-$endpoint = 'http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/json/full/6?apikey=1234';
 $result = file_get_contents($endpoint);
 $api_result = json_decode($result, true);
 

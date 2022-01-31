@@ -23,15 +23,17 @@ export const LocalizationContext = createContext({
   getCurrentLocale: () => {}
 });
 
+var allNamespaces = additionalNamespaces;
+allNamespaces.unshift(defaultNamespace);
+
 export const LocalizationProvider = ({children}) => {
 
 	var translationKeys = {};
 
 	const LOCALE_UP_TO_DATE = 'locale up to date';
 
-	const getMetaEndpoint = `http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/json/meta/${projectId}?apikey=${tarjimApikey}`;
-	//const getTranslationsEndpoint = `https://tarjim.io/translationkeys/json/full/${projectId}?apikey=${tarjimApikey}`; 
-	const getTranslationsEndpoint = `http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/jsonByNameSpaces`;
+	const getMetaEndpoint = `https://tarjim.io/api/v1/translationkeys/json/meta/${projectId}?apikey=${tarjimApikey}`;
+	const getTranslationsEndpoint = `https://tarjim.io/api/v1/translationkeys/jsonByNameSpaces`;
 
 	var localeLastUpdated = 0;
 	if (cachedTarjimData.hasOwnProperty('meta') && cachedTarjimData.meta.hasOwnProperty('results_last_update')) {
@@ -42,6 +44,7 @@ export const LocalizationProvider = ({children}) => {
 	if (cachedTarjimData.hasOwnProperty('results')) {
 		cachedTranslations = cachedTarjimData.results;
 	}
+
 
 	const [ translations, setTranslations ] = useState(translationKeys);
 	const [ currentLocale, setCurrentLocale ] = useState(defaultLanguage);
@@ -81,9 +84,6 @@ export const LocalizationProvider = ({children}) => {
 	 *
 	 */
 	function loadInitialTranslations() {
-		let allNamespaces = additionalNamespaces;
-		allNamespaces.unshift(defaultNamespace);
-
 		allNamespaces.forEach(namespace => {
 			translationKeys[namespace] = {};
 			supportedLanguages.forEach(language => {
@@ -101,8 +101,6 @@ export const LocalizationProvider = ({children}) => {
 				}
 			})
 		});
-
-		console.log(translationKeys);
 	}
 
 	/**
@@ -178,8 +176,12 @@ export const LocalizationProvider = ({children}) => {
 	 * skip assiging tid and wrapping in span
 	 * used for images, placeholder, select options, title...
 	 */
-	function __TS(key) {
-		return __T(key, {skipTid: true});
+	function __TS(key, config = {}) {
+		config = {
+			...config,
+			skipTid: true,
+		};
+		return __T(key, config);
 	}
 
 	/**
@@ -263,6 +265,10 @@ export const LocalizationProvider = ({children}) => {
 	 * fullValue => full object for from $_T to retreive extra attributes if needed
 	 */
 	function getTranslationValue(key, namespace) {
+		if (isEmpty(translationKeys)) {
+			loadInitialTranslations();
+		}
+
 		let tempKey = key;
 		if (typeof key === 'object' || Array.isArray(key)) {
 			tempKey = key['key'];
@@ -365,10 +371,10 @@ export const LocalizationProvider = ({children}) => {
    */
 	async function updateTranslationKeys() {
 		if (await translationsNeedUpdate()) {
-			console.log('22222');
 			let updatedTranslationKeys = await getTranslationsFromApi();
 			translationKeys = updatedTranslationKeys;
 		}
+
 
 		// Get language from cake
 		let language;
@@ -388,14 +394,12 @@ export const LocalizationProvider = ({children}) => {
 	}
 
 	async function translationsNeedUpdate() {
-			let returnValue;
+		let returnValue;
 		try {
 			let response = await fetch(getMetaEndpoint);
 			let result = await response.json();
-			console.log('meta result: ', result);
 			let apiLastUpdated = result.result.data.meta.results_last_update;
-			if (localeLastUpdated >= apiLastUpdated) {
-				console.log('here');
+			if (localeLastUpdated < apiLastUpdated) {
 				returnValue = true;
 			}
 			else {
@@ -403,11 +407,10 @@ export const LocalizationProvider = ({children}) => {
 			}
 		} catch(err) {
 			console.log('Translations api error: ', err);
-			returnValue = false;
+			returnValue = true;
 		}
-		console.log('translationsNeedUpdate: ',  returnValue);
-		return returnValue;
 
+		return returnValue;
 	}
 
 	/**
@@ -421,17 +424,16 @@ export const LocalizationProvider = ({children}) => {
 				method: 'POST',
 				body: JSON.stringify({
 					'project_id': projectId,
-					'namespaces': additionalNamespaces,
+					'namespaces': allNamespaces,
 					'apikey': tarjimApikey,
 				}),
 			});
 			let result = await response.json();
 			if (result.hasOwnProperty('result')){
 				result = result.result.data
-				console.log('result: ', result);
 			}
-				let apiTranslations = result.results;
-				_translations = apiTranslations;
+			let apiTranslations = result.results;
+			_translations = apiTranslations;
 		} catch(err) {
 			console.log('Translations api error: ', err);
 			_translations = translationKeys;	
@@ -444,7 +446,6 @@ export const LocalizationProvider = ({children}) => {
 	 *
 	 */
 	function _setTarjimConfig(language = 'en') {
-		console.log('TKEYS: ', translationKeys);
 		setCurrentLocale(language);
 		setTranslations(translationKeys);
 	};
