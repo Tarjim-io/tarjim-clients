@@ -167,7 +167,6 @@ class Tarjimclient {
 
 		$result = curl_exec($ch);
 
-		debug($result);die();
 		if (curl_error($ch)) {
 			file_put_contents($this->errors_file, 'Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
 			$cache_data = file_get_contents($this->cache_file);
