@@ -156,6 +156,7 @@ class Tarjimclient {
 			'namespaces' => $this->namespaces,
 		];
 
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -280,6 +281,49 @@ function _T($key, $config = [], $debug = false) {
 }
 
 /**
+ * return dataset with all languages for key
+ */
+function _TD($key, $config = []) {
+	global $_T;
+	$namespace = $_T['meta']['default_namespace'];
+
+	if (isset($config['namespace'])) {
+		$namespace = $config['namespace'];
+	}
+
+	$dataset = [];
+	$original_key = $key;
+	$key = strtolower($key);
+
+	$translations = $_T['results'];	
+	if ('all_namespaces' == $namespace) {
+		foreach ($translations as $namespace => $namespace_translations) {
+			if ('meta' == $namespace) {
+				continue;
+			};
+			foreach ($namespace_translations as $language => $language_translations) {
+				$dataset[$namespace][$language] = '';
+				if (isset($language_translations[$key])) {
+					$sanitized_value = sanitizeResult($key, $language_translations[$key]['value']);
+					$dataset[$namespace][$language] = $sanitized_value;
+				}
+			}
+		}
+	}
+	else {
+		$namespace_translations = $translations[$namespace];
+		foreach ($namespace_translations as $language => $language_translations) {
+			$dataset[$language] = '';
+			if (isset($language_translations[$key])) {
+				$sanitized_value = sanitizeResult($key, $language_translations[$key]['value']);
+				$dataset[$language] = $sanitized_value;
+			}
+		}
+	}
+	return $dataset;
+}
+
+/**
  * Shorthand for _T($key, ['skip_tid'])
  * Skip assigning data-tid and wrapping in span
  * used with images, placeholders, title, select/dropdown
@@ -374,29 +418,30 @@ function getTarjimValue($key, $namespace = '') {
 	$assign_tarjim_id = false;
 	$tarjim_id = '';
 	$full_value = [];
+	$translations = $_T['results'];
 
 	## Direct match
-	if (isset($_T[$namespace][$active_language][$key]) && !empty($_T[$namespace][$active_language][$key])) {
+	if (isset($translations[$namespace][$active_language][$key]) && !empty($translations[$namespace][$active_language][$key])) {
 		$mode = 'direct';
-		if (is_array($_T[$namespace][$active_language][$key])) {
-			$value = $_T[$namespace][$active_language][$key]['value'];
-			$tarjim_id = $_T[$namespace][$active_language][$key]['id'];
+		if (is_array($translations[$namespace][$active_language][$key])) {
+			$value = $translations[$namespace][$active_language][$key]['value'];
+			$tarjim_id = $translations[$namespace][$active_language][$key]['id'];
 			$assign_tarjim_id = true;
-			$full_value = $_T[$namespace][$active_language][$key];
+			$full_value = $translations[$namespace][$active_language][$key];
 		}
 		else {
-			$value = $_T[$namespace][$active_language][$key];
+			$value = $translations[$namespace][$active_language][$key];
 		}
 	}
 
 	## Fallback key
-	if (isset($_T[$namespace][$active_language][$key]) && empty($_T[$namespace][$active_language][$key])) {
+	if (isset($translations[$namespace][$active_language][$key]) && empty($translations[$namespace][$active_language][$key])) {
 		$mode = 'key_fallback';
 		$value = $original_key;
 	}
 
 	## Empty fall back (return key)
-	if (!isset($_T[$namespace][$active_language][$key])) {
+	if (!isset($translations[$namespace][$active_language][$key])) {
 		$mode = 'empty_key_fallback';
 		$value = $original_key;
 	}
