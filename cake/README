@@ -96,7 +96,7 @@ public function beforeFilter() {
         ## Set active language view variable
 		$active_language = $this->Session->read('Config.language');
 		$this->set('active_language', $active_language);
-		$this->setTranslation(Configure::read('TARJIM_DEFAULT_NAMESPACE'), $active_language);
+		$this->setTranslation($active_language);
 	}
 }
 
