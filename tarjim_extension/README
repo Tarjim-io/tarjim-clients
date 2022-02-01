@@ -4,7 +4,7 @@ cd .git/hooks
 mkdir pre-push
 vi pre-push
 ```
-paste into pre-pre
+paste into pre-push
 ```
 #!/bin/bash
 
