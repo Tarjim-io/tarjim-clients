@@ -541,9 +541,9 @@ function cacheSanitizedHTML($key, $sanitized, $cache_results_checksum) {
 	$sanitized_html_cache['meta']['results_checksum'] = $cache_results_checksum;
 	$sanitized_html_cache['results'][$active_language][$key] = $sanitized;
 	$encoded_sanitized_html_cache = json_encode($sanitized_html_cache);
-	file_put_contents($sanitized_html_cache_file, $encoded_sanitized_html_cache);
 	$cmd = 'chmod 777 '.$Tarjimclient->sanitized_html_cache_file;
 	exec($cmd);
+	file_put_contents($sanitized_html_cache_file, $encoded_sanitized_html_cache);
 }
 
 /**
