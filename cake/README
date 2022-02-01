@@ -43,42 +43,51 @@ Configure::write('TARJIM_APIKEY', YOUR_API_KEY);
 11. update TARJIM_PROJECT_ID
 12. add to app_controller:
  - Note: add project language cases to switch statement below
+ this function should also be defined in models if you want to use tarjim in a model
 
 ```
   /**
    *
    */
-  public function setTranslation($namespace = 'backend', $language = 'en') {
-    global $_T;
+  public function setTranslation($language = 'en') {
+		global $_T;
 
-    ## Support older language keys
-    switch($language) {
-    case 'en':
-    case 'eng':
-    case 'english':
-      $language = 'en';
-      break;
+		## Support older language keys
+		switch($language) {
+		case 'en':
+		case 'eng':
+		case 'english':
+			$language = 'en';
+			break;
 
-    case 'fr':
-    case 'fre':
-    case 'french':
-      $language = 'fr';
-      break;
+		case 'fr':
+		case 'fre':
+		case 'french':
+			$language = 'fr';
+			break;
 
-    default:
-      $language = 'fr';
-      break;
+		default:
+			$language = 'fr';
+			break;
 
-    }
+		}
+
+		$project_id = YOUR_PROJECT_ID;
+		$apikey = YOUR_APIKEY;
+		$default_namespace = DEFAULT_NAMESPACE;
+
+    ## Additional namespaces is optional
+    # takes array of strings
+		$additional_namespaces = ADDITIONAL_NAMESPACES;
 
     ## Set translation keys
-    $Tarjim = new Tarjimclient();
-    $_T = $Tarjim->getTranslations();
-    ## for Cakex view translation (non-json encoded)
-    $_T = $_T['results'][$namespace][$language];
-    $_T['meta']['active_language'] = $language;
+    $Tarjim = new Tarjimclient($project_id, $apikey, $default_namespace, $additional_namespaces);
+		$_T = $Tarjim->getTranslations();
 
-    $this->set('_T', $_T);
+		## for Cakex view translation (non-json encoded)
+		$_T = $_T['results'];
+		$_T['meta']['active_language'] = $language;
+		$_T['meta']['default_namespace'] = $default_namespace;
   }
 
 public function beforeFilter() {

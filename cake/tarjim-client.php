@@ -18,6 +18,13 @@ class Tarjimclient {
 		$this->apikey = $apikey;
 		$this->default_namespace = $default_namespace;
 		$this->additional_namespaces = $additional_namespaces;
+
+		if (empty($additional_namespaces) || !is_array($additional_namespaces)) {
+			$additional_namespaces = [];
+		}
+
+		$this->namespaces = $additional_namespaces;
+		array_unshift($this->namespaces, $default_namespace);
 		//$this->cache_dir = ROOT . '/' . APP_DIR . '/tmp/cache/locale/';
 		$this->cache_dir = __DIR__.'/cache/';
 		$this->cache_backup_file = $this->cache_dir.'translations_backup.json';
@@ -56,7 +63,7 @@ class Tarjimclient {
 			}
 			else {
 				## Pull meta
-				$endpoint = 'http://tarjim.io/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
+				$endpoint = 'http://tarjim.io/api/v1/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $endpoint);
 				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -66,7 +73,7 @@ class Tarjimclient {
 				$meta = curl_exec($ch);
 
 				## Get translations from cache if curl failed
-				if (!curl_error($ch)) {
+				if (curl_error($ch)) {
 					file_put_contents($this->errors_file, 'Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
 					//CakeLog::write('vendors/tarjim_client/errors', 'Curl error line '.__LINE__.': ' . curl_error($ch));
 					$cache_data = file_get_contents($this->cache_file);
@@ -80,6 +87,12 @@ class Tarjimclient {
 				curl_close($ch);
 
 				$meta = json_decode($meta, true);
+
+				## Forward compatibility		
+				if (array_key_exists('result', $meta)) {
+					$meta = $meta['result']['data'];
+				}
+
 
 				## Get cache meta tags
 				$cache_meta = file_get_contents($this->cache_file);
@@ -134,15 +147,25 @@ class Tarjimclient {
 	public function getLatestFromTarjim() {
 		set_error_handler('tarjimErrorHandler');
 
-		$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
-		//$endpoint = 'http://tarjim.hussein.dev.joylab.ca/api/v1/translationkeys/json/full/6?apikey=1234';
+		//$endpoint = 'http://tarjim.io/api/v1/translationkeys/json/full/'.$this->project_id.'?apikey='.$this->apikey;
+		$endpoint = 'http://tarjim.io/api/v1/translationkeys/jsonByNameSpaces';
+
+		$post_params = [
+			'project_id' => $this->project_id,
+			'apikey' => $this->apikey,	
+			'namespaces' => $this->namespaces,
+		];
+
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post_params));
+		curl_setopt($ch, CURLOPT_POSTREDIR, 3);
+
 		$result = curl_exec($ch);
-		//debug($result);die();
 
 		if (curl_error($ch)) {
 			file_put_contents($this->errors_file, 'Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
@@ -186,6 +209,11 @@ function tarjimErrorHandler($errno, $errstr, $errfile, $errline) {
  */
 ///////////////////////////////
 function _T($key, $config = [], $debug = false) {
+	## Sanity
+	if (empty($key)) {
+		return;
+	}
+
 	set_error_handler('tarjimErrorHandler');
 
 	## Check for mappings
@@ -256,8 +284,9 @@ function _T($key, $config = [], $debug = false) {
  * Skip assigning data-tid and wrapping in span
  * used with images, placeholders, title, select/dropdown
  */
-function _TS($key) {
-	return _T($key, ['skip_tid']);
+function _TS($key, $config = []) {
+	$config['skip_tid'] = true;
+	return _T($key, $config);
 }
 
 /**
@@ -274,6 +303,11 @@ function _TI($key, $attributes) {
  * If received key doesn't have type:image return _T($key) instead
  */
 function _TM($key, $attributes=[]) {
+	## Sanity
+	if (empty($key)) {
+		return;
+	}
+
 	set_error_handler('tarjimErrorHandler');
 	
 	$namespace = '';
@@ -414,7 +448,7 @@ function sanitizeResult($key, $result) {
 			$active_language = $_SESSION['Config']['language'];
 		}
 
-		if (file_exists($Tarjimclient->sanitized_html_cache_file) && isset($active_language)) {
+		if (file_exists($Tarjimclient->sanitized_html_cache_file) && filesize($Tarjimclient->sanitized_html_cache_file) && isset($active_language)) {
 			global $_T;
 			$sanitized_html_cache_file = $Tarjimclient->sanitized_html_cache_file;
 			$cache_file = $Tarjimclient->cache_file;
@@ -494,7 +528,7 @@ function cacheSanitizedHTML($key, $sanitized, $cache_results_checksum) {
 		return;
 	}
 
-	if (file_exists($sanitized_html_cache_file)) {
+	if (file_exists($sanitized_html_cache_file) && filesize($sanitized_html_cache_file)) {
 		$sanitized_html_cache = file_get_contents($sanitized_html_cache_file);
 		$sanitized_html_cache = json_decode($sanitized_html_cache, true);
 
