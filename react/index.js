@@ -19,6 +19,7 @@ export const LocalizationContext = createContext({
 	__TS: () => {},
 	__TM: () => {},
 	__TI: () => {},
+	__TD: () => {},
 	setTranslation: () => {},
   getCurrentLocale: () => {}
 });
@@ -175,6 +176,42 @@ export const LocalizationProvider = ({children}) => {
 		,
 		(key, config) => (config ? key + JSON.stringify(config) : key)
 	);
+
+	/**
+	 * return dataset with all languages for key
+	 */
+	function __TD(key, config = {}) {
+		let namespace = defaultNamespace;
+		if (config && config.namespace) {
+			namespace = config.namespace;
+		}
+
+		let dataset = {};
+		let value = '';
+		if ('allNamespaces' === namespace) {
+			allNamespaces.forEach(_namespace => {
+				dataset[_namespace] = {};
+				supportedLanguages.forEach(language => {
+					let value = getTranslationValue(key, _namespace, language);
+					if (value.keyFound) {
+						value = value.value;
+					}
+					else {
+						value = '';
+					}
+					dataset[_namespace][language] = value;
+				})
+			})
+		}
+		else {
+			supportedLanguages.forEach(language => {
+				let value = getTranslationValue(key, namespace, language);
+				dataset[language] = value.value;
+			})
+		}
+
+		return dataset;
+	}
 	 
 	/**
 	 * Shorthand for __T(key, {skipTid: true})
@@ -274,12 +311,17 @@ export const LocalizationProvider = ({children}) => {
 	 * assignTarjimId => boolean
 	 * fullValue => full object for from $_T to retreive extra attributes if needed
 	 */
-	function getTranslationValue(key, namespace) {
+	function getTranslationValue(key, namespace, language = '') {
 		if (isEmpty(translationKeys)) {
 			loadInitialTranslations();
 		}
 
+		if (isEmpty(language)) {
+			language = currentLocale;
+		}
+
 		let tempKey = key;
+		let keyFound = false;
 		if (typeof key === 'object' || Array.isArray(key)) {
 			tempKey = key['key'];
 		}
@@ -287,9 +329,10 @@ export const LocalizationProvider = ({children}) => {
 		let translation;
 		if (
 			translations.hasOwnProperty(namespace) && 
-			translations[namespace][currentLocale].hasOwnProperty(tempKey.toLowerCase())
+			translations[namespace][language].hasOwnProperty(tempKey.toLowerCase())
 		) {
-			translation = translations[namespace][currentLocale][tempKey.toLowerCase()];
+			keyFound = true;
+			translation = translations[namespace][language][tempKey.toLowerCase()];
 		}
 		else {
 			translation = tempKey;
@@ -311,8 +354,10 @@ export const LocalizationProvider = ({children}) => {
 			'value': translationString,
 			'translationId': translationId,
 			'assignTarjimId': assignTarjimId,
-			'fullValue': translation
+			'fullValue': translation,
+			'keyFound': keyFound
 		};
+
 
 		return result;
 	}
@@ -477,6 +522,7 @@ export const LocalizationProvider = ({children}) => {
 				__TS,
 				__TM,
 				__TI,
+				__TD,
         setTranslation: setTranslation,
         getCurrentLocale: getCurrentLocale
 			}}>
