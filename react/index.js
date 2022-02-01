@@ -108,6 +108,11 @@ export const LocalizationProvider = ({children}) => {
 	 */
 	const __T = memoize (
 		(key, config) => {
+			// Sanity
+			if (isEmpty(key)) {
+				return;
+			}
+
 			let namespace = defaultNamespace;
 			if (config && config.namespace) {
 				namespace = config.namespace;
@@ -197,6 +202,11 @@ export const LocalizationProvider = ({children}) => {
 	 * If received key doesn't have type:image return __T(key) instead
 	 */
 	function __TM(key, attributes={}) {
+		// Sanity
+		if (isEmpty(key)) {
+			return;
+		}
+
 		let namespace = defaultNamespace;
 
 		if (attributes && attributes.namespace) {
