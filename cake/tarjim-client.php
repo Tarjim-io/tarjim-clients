@@ -209,6 +209,11 @@ function tarjimErrorHandler($errno, $errstr, $errfile, $errline) {
  */
 ///////////////////////////////
 function _T($key, $config = [], $debug = false) {
+	## Sanity
+	if (empty($key)) {
+		return;
+	}
+
 	set_error_handler('tarjimErrorHandler');
 
 	## Check for mappings
@@ -298,6 +303,11 @@ function _TI($key, $attributes) {
  * If received key doesn't have type:image return _T($key) instead
  */
 function _TM($key, $attributes=[]) {
+	## Sanity
+	if (empty($key)) {
+		return;
+	}
+
 	set_error_handler('tarjimErrorHandler');
 	
 	$namespace = '';
