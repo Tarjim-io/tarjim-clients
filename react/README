@@ -1,5 +1,4 @@
 ## Instructions
-Setup tarjim in cake before react
 
 ### Setup:
 1. install lodash `npm install lodash`
@@ -9,28 +8,29 @@ Setup tarjim in cake before react
 cd src/services
 git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
 ```
-4. delete src/services/LocalizationService if it exists
-5. add symlink in root project dir for update_locale.php run 
+4. copy config.js.sample to config.js and config.php.sample to config.php and update with values for your project
+5. delete src/services/LocalizationService if it exists
+6. add symlink in root project dir for update_locale.php run 
 ```
 ln  -s src/services/tarjim_clients/react/update_locale.php
 ```
-6. update import statements for LocalizationService
+7. update import statements for LocalizationService
 ```
 find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarjim_clients\/react/g' {} \;
 ```
-7. add to setup_environment script 
+8. add to setup_environment script 
 ```
 git submodule update --init --recursive src/services/tarjim_clients
 git submodule update --remote --merge src/services/tarjim_clients
 php update_locale.php
 ```
 
-8. edit config.js.sample and config.php.sample with your values and rename to config.js and config.php
-9. run update_locale.php `php update_locale.php`
-10. in App.js: 	
+9. edit config.js.sample and config.php.sample with your values and rename to config.js and config.php
+10. run update_locale.php `php update_locale.php`
+11. in App.js: 	
 	* import { LocalizationProvider } from 'services/tarjim_clients/react';
 	* add <LocalizationService> as parent tag
-11. add to the url params for all api calls skip_get_translations=1
+12. add to the url params for all api calls skip_get_translations=1
 
 ### Usage:
 ```
