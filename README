@@ -1,9 +1,6 @@
-## Update notes
-
-
 ### Update notes
-## Update setTranslation function
-- Function signature changed to setTranslation($language);
+- setTranslation($namespace, $language) function signature changed to setTranslation($language);
+- Update setTranslation() function
 
 ```
   /**
