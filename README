@@ -42,7 +42,7 @@
 		$_T = $Tarjim->getTranslations();
 
 		## for Cakex view translation (non-json encoded)
-		$_T = $_T['results'];
+		$_T['results'] = $_T['results'];
 		$_T['meta']['active_language'] = $language;
 		$_T['meta']['default_namespace'] = $default_namespace;
   }
