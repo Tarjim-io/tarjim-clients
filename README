@@ -1,99 +1,55 @@
 ## Update notes
 
-### Create git hooks
-```
-cd .git/hooks
-mkdir pre-push
-vi pre-push
-```
-paste into pre-pre
-```
-#!/bin/bash
 
-zip tarjim_extension.zip tarjim_extension
-USERNAME=$(git config --get user.name)
-curl -s -u $USERNAME -X POST https://api.bitbucket.org/2.0/repositories/joylab/tarjim_clients/downloads/ -F files=@tarjim_extension.zip
-```
-
-### Cake
-- Params for _T() changed to _T($key, $config = [], $debug = false)
-- In app_controller->setTranslation() add $_T['meta']['active_language'] = $language;
+### Update notes
+## Update setTranslation function
+- Function signature changed to setTranslation($language);
 
 ```
-public function setTranslation($namespace = 'backend', $language = 'en') {
-    global $_T;
+  /**
+   *
+   */
+  public function setTranslation($language = 'en') {
+		global $_T;
 
-    ## Support older language keys
-    switch($language) {
-    case 'en':
-    case 'eng':
-    case 'english':
-      $language = 'en';
-      break;
+		## Support older language keys
+		switch($language) {
+		case 'en':
+		case 'eng':
+		case 'english':
+			$language = 'en';
+			break;
 
-    case 'fr':
-    case 'fre':
-    case 'french':
-      $language = 'fr';
-      break;
+		case 'fr':
+		case 'fre':
+		case 'french':
+			$language = 'fr';
+			break;
 
-    default:
-      $language = 'fr';
-      break;
+		default:
+			$language = 'fr';
+			break;
 
-    }   
+		}
+
+		$project_id = YOUR_PROJECT_ID;
+		$apikey = YOUR_APIKEY;
+		$default_namespace = DEFAULT_NAMESPACE;
+
+    ## Additional namespaces is optional
+    # takes array of strings
+		$additional_namespaces = ADDITIONAL_NAMESPACES;
 
     ## Set translation keys
-    $Tarjim = new Tarjimclient();
-    $_T = $Tarjim->getTranslations();
-    ## for Cakex view translation (non-json encoded)
-    //debug($_T);die();
-    $_T = $_T['results'][$namespace][$language];
-    
-    $_T['meta']['active_language'] = $language;
+    $Tarjim = new Tarjimclient($project_id, $apikey, $default_namespace, $additional_namespaces);
+		$_T = $Tarjim->getTranslations();
 
-    $this->set('_T', $_T);
-    #$this->set('translationArray', json_encode($_T));
+		## for Cakex view translation (non-json encoded)
+		$_T = $_T['results'];
+		$_T['meta']['active_language'] = $language;
+		$_T['meta']['default_namespace'] = $default_namespace;
   }
-
 ```
-
-- For page titles add config = ['is_page_title' => true];
-ex: 
-```
-<title><?=_T($title_for_layout, ['is_page_title' => true])?> | Panda7</title>
-```
-and if title was set in controller remove call to _T() from controller
-ex: 
-```
-before:
-$this->set('title_for_layout', _T('Condo'));
-
-now:
-$this->set('title_for_layout', 'Condo');
-```
-#### IMPORTANT
-For placeholders, dropdown/select options, email subject, and swal pass in config skip_assign_tid = true
-```
-<input placeholder=<?=_T('placeholder', ["skip_assign_tid" => true])?> />
-```
-skip_assign_tid can also be used for page titles
-
-
-### React
-- install isomorphic-dompurify `npm i isomorphic-dompurify`
-- For page title pass in config isPageTitle: true;
-ex
-```
-__T('Insurance', {isPageTitle: true})
-```
-#### IMPORTANT
-For placeholder, dropdown/select options, page title, and swal pass skipAssignTid = true
-```
-__T('key', {skipAssignTid: true})
-```
-
-
 
 ## Setup
 

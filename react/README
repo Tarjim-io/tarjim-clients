@@ -2,36 +2,35 @@
 Setup tarjim in cake before react
 
 ### Setup:
-1. install i18n-js `npm install i18n-js`
-2. install lodash `npm install lodash`
-3. install isomorphic-dompurify `npm i isomorphic-dompurify`
-4. clone into src/services 
+1. install lodash `npm install lodash`
+2. install isomorphic-dompurify `npm i isomorphic-dompurify`
+3. clone into src/services 
 ```
 cd src/services
 git submodule add git@bitbucket.org:joylab/tarjim_clients.git 
 ```
-5. delete src/services/LocalizationService if it exists
-6. add symlink in root project dir for update_locale.php run 
+4. delete src/services/LocalizationService if it exists
+5. add symlink in root project dir for update_locale.php run 
 ```
 ln  -s src/services/tarjim_clients/react/update_locale.php
 ```
-7. update import statements for LocalizationService
+6. update import statements for LocalizationService
 ```
 find ./src -type f -exec sed -i 's/services\/LocalizationService/services\/tarjim_clients\/react/g' {} \;
 ```
-8. add to setup_environment script 
+7. add to setup_environment script 
 ```
 git submodule update --init --recursive src/services/tarjim_clients
 git submodule update --remote --merge src/services/tarjim_clients
 php update_locale.php
 ```
 
-9. edit config.js.sample and config.php.sample with your values and rename to config.js and config.php
-10. run update_locale.php `php update_locale.php`
-11. in App.js: 	
+8. edit config.js.sample and config.php.sample with your values and rename to config.js and config.php
+9. run update_locale.php `php update_locale.php`
+10. in App.js: 	
 	* import { LocalizationProvider } from 'services/tarjim_clients/react';
 	* add <LocalizationService> as parent tag
-12. add to the url params for all api calls skip_get_translations=1
+11. add to the url params for all api calls skip_get_translations=1
 
 ### Usage:
 ```
@@ -50,6 +49,16 @@ setTranslation(language);
 * Get current lang: 
 ```
 const { getCurrentLocale } = useContext(LocalizationContext);
+```
+* For page title pass in config isPageTitle: true;
+ex
+```
+__T('Insurance', {isPageTitle: true})
+```
+
+* For placeholder, dropdown/select options, page title, and swal pass skipAssignTid = true
+```
+__T('key', {skipAssignTid: true})
 ```
 
 ### To use variables in translation value
