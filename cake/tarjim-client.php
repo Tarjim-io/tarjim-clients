@@ -182,7 +182,7 @@ class Tarjimclient {
 		
 		## Forward compatibility		
 		if (array_key_exists('result', $decoded)) {
-			if (!isset($decoded['result']['data'])) {
+			if (isset($decoded['result']['data'])) {
 				$decoded = $decoded['result']['data'];
 			}
 			else {
@@ -195,7 +195,6 @@ class Tarjimclient {
 				return $final;
 			}
 		}
-			$decoded = $decoded['result']['data'];
 
 		## Restore default error handler
 		restore_error_handler();
