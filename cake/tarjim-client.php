@@ -182,8 +182,20 @@ class Tarjimclient {
 		
 		## Forward compatibility		
 		if (array_key_exists('result', $decoded)) {
-			$decoded = $decoded['result']['data'];
+			if (!isset($decoded['result']['data'])) {
+				$decoded = $decoded['result']['data'];
+			}
+			else {
+				file_put_contents($this->errors_file, date('Y-m-d H:i:s').' Tarjim Error'.__LINE__.' tarjim response: ' . json_encode($decoded).PHP_EOL, FILE_APPEND);
+				$cache_data = file_get_contents($this->cache_file);
+				$final = json_decode($cache_data, true);
+
+				## Restore default error handler
+				restore_error_handler();
+				return $final;
+			}
 		}
+			$decoded = $decoded['result']['data'];
 
 		## Restore default error handler
 		restore_error_handler();
@@ -424,7 +436,13 @@ function getTarjimValue($key, $namespace = '') {
 	if (isset($translations[$namespace][$active_language][$key]) && !empty($translations[$namespace][$active_language][$key])) {
 		$mode = 'direct';
 		if (is_array($translations[$namespace][$active_language][$key])) {
-			$value = $translations[$namespace][$active_language][$key]['value'];
+			if (!empty($translations[$namespace][$active_language][$key]['value'])) {
+				$value = $translations[$namespace][$active_language][$key]['value'];
+			}
+			else {
+				$mode = 'empty_value_fallback';
+				$value = $original_key;
+			}
 			$tarjim_id = $translations[$namespace][$active_language][$key]['id'];
 			$assign_tarjim_id = true;
 			$full_value = $translations[$namespace][$active_language][$key];
