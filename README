@@ -13,7 +13,7 @@ ln -s ../vendors/tarjim_clients/php/tarjim_controller.php
 shell:
 ```
 cd vendors/shells
-rm tarjim_controller.php
+rm tarjim.php
 ln -s ../tarjim_clients/php/tarjim.php
 ```
 - Update setTranslation() function
