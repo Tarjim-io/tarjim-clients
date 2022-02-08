@@ -68,7 +68,7 @@ class Tarjimclient {
 	public function getTranslations() {
 		set_error_handler('tarjimErrorHandler');
 
-		if (!file_exists($this->cache_file) || !filesize($this->cache_file) || is_null(file_put_contents($this->cache_file))) {
+		if (!file_exists($this->cache_file) || !filesize($this->cache_file) || is_null(file_get_contents($this->cache_file))) {
 			$final = $this->getLatestFromTarjim();
 			$this->updateCache($final);
 		}
