@@ -15,7 +15,8 @@ dist/
 
 # Log files
 *.log
-!cake/logs/errors.log
+!php/logs/errors.log
+!php/logs/update_cache.log
 
 # Package files
 *.jar
