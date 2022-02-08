@@ -26,6 +26,9 @@ ln -s ../tarjim_clients/php/tarjim.php
 		$project_id = Configure::read('TARJIM_PROJECT_ID');
 		$apikey = Configure::read('TARJIM_APIKEY');
 		$default_namespace = Configure::read('TARJIM_DEFAULT_NAMESPACE');
+
+		## additional namespaces is optional can be null;
+		# takes array of strings
 		$additional_namespaces = Configure::read('TARJIM_ADDITIONAL_NAMESPACES');
 
     ## Set translation keys
