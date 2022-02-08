@@ -171,55 +171,20 @@ class TarjimController extends AppController {
   /**
    *
    */
-  public function getFrontendLocale() {
-    if (empty($_GET['locale_last_updated'])) {
-      $frontend_locale_last_updated = 0;
-    }
-    else {
-      $frontend_locale_last_updated = $_GET['locale_last_updated'];
-    }
-
-		$default_namespace = 'react';
-		if (isset($_GET['default_namespace'])) {
-			$default_namespace = $_GET['default_namespace'];
-		}
-
-		$data = json_decode(file_get_contents('php://input'), true);
-
-		if (isset($data['additional_namespaces'])) {
-			$additional_namespaces = $data['additional_namespaces'];
-		}
-
-    $Tarjim = new Tarjimclient();
-		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
-    $api_translations = $Tarjim->getTranslations();
-
-    if (!empty($api_translations) && $frontend_locale_last_updated < $api_translations['meta']['results_last_update']) {
-			$result[$default_namespace] = $api_translations['results'][$default_namespace];
-			if (isset($additional_namespaces)) {
-				foreach ($additional_namespaces as $namespace) {
-					$result[$namespace] = $api_translations['results'][$namespace];
-				}	
-			}
-
-    }
-    else {
-      $result = 'locale up to date';
-    }
-
-    $this->outputSuccessfulApi($result);
-  }
-
-  /**
-   *
-   */
   public function updateLocaleCache() {
+		$project_id = Configure::read('TARJIM_PROJECT_ID');
+		$apikey = Configure::read('TARJIM_APIKEY');
+		$default_namespace = Configure::read('TARJIM_DEFAULT_NAMESPACE');
+		$additional_namespaces = Configure::read('TARJIM_ADDITIONAL_NAMESPACES');
+
+    ## Set translation keys
+    $Tarjim = new Tarjimclient($project_id, $apikey, $default_namespace, $additional_namespaces);
     
-    $Tarjim = new Tarjimclient();
-		$Tarjim->project_id = Configure::read('TARJIM_PROJECT_ID');
     $result = $Tarjim->getLatestFromTarjim();
 		$Tarjim->updateCache($result);
     
+		$Tarjim->writeToFile($Tarjim->update_cache_log_file, 'cache refreshed on '.date('Y-m-d H:i:s').PHP_EOL, FILE_APPEND);
+
     $this->outputSuccessfulApi();
   }
 }
