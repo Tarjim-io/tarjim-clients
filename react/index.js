@@ -33,8 +33,8 @@ export const LocalizationProvider = ({children}) => {
 
 	const LOCALE_UP_TO_DATE = 'locale up to date';
 
-	const getMetaEndpoint = `https://tarjim.io/api/v1/translationkeys/json/meta/${projectId}?apikey=${tarjimApikey}`;
-	const getTranslationsEndpoint = `https://tarjim.io/api/v1/translationkeys/jsonByNameSpaces`;
+	const getMetaEndpoint = `https://app.tarjim.io/api/v1/translationkeys/json/meta/${projectId}?apikey=${tarjimApikey}`;
+	const getTranslationsEndpoint = `https://app.tarjim.io/api/v1/translationkeys/jsonByNameSpaces`;
 
 	var localeLastUpdated = 0;
 	if (cachedTarjimData.hasOwnProperty('meta') && cachedTarjimData.meta.hasOwnProperty('results_last_update')) {

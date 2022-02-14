@@ -1,5 +1,21 @@
 ### Update notes
-- setTranslation($namespace, $language) function signature changed to setTranslation($language);
+- Update require statement in config/core change cake to php
+```
+require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/php/tarjim-client.php';
+```
+- Update symlinks change cake to php
+controller: 
+```
+cd controllers
+rm tarjim_controller.php
+ln -s ../vendors/tarjim_clients/php/tarjim_controller.php
+```
+shell:
+```
+cd vendors/shells
+rm tarjim.php
+ln -s ../tarjim_clients/php/tarjim.php
+```
 - Update setTranslation() function
 
 ```
@@ -7,51 +23,24 @@
    *
    */
   public function setTranslation($language = 'en') {
-		global $_T;
+		$project_id = Configure::read('TARJIM_PROJECT_ID');
+		$apikey = Configure::read('TARJIM_APIKEY');
+		$default_namespace = Configure::read('TARJIM_DEFAULT_NAMESPACE');
 
-		## Support older language keys
-		switch($language) {
-		case 'en':
-		case 'eng':
-		case 'english':
-			$language = 'en';
-			break;
-
-		case 'fr':
-		case 'fre':
-		case 'french':
-			$language = 'fr';
-			break;
-
-		default:
-			$language = 'fr';
-			break;
-
-		}
-
-		$project_id = YOUR_PROJECT_ID;
-		$apikey = YOUR_APIKEY;
-		$default_namespace = DEFAULT_NAMESPACE;
-
-    ## Additional namespaces is optional
-    # takes array of strings
-		$additional_namespaces = ADDITIONAL_NAMESPACES;
+		## additional namespaces is optional can be null;
+		# takes array of strings
+		$additional_namespaces = Configure::read('TARJIM_ADDITIONAL_NAMESPACES');
 
     ## Set translation keys
     $Tarjim = new Tarjimclient($project_id, $apikey, $default_namespace, $additional_namespaces);
-		$_T = $Tarjim->getTranslations();
-
-		## for Cakex view translation (non-json encoded)
-		$_T['results'] = $_T['results'];
-		$_T['meta']['active_language'] = $language;
-		$_T['meta']['default_namespace'] = $default_namespace;
+		$Tarjim->setTranslations($language);
   }
 ```
 
 ## Setup
 
 ### Cake
-#### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/cake)
+#### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/php)
 
 ### React
 #### [First time setup instructions check readme here](https://bitbucket.org/joylab/tarjim_clients/src/master/react/)

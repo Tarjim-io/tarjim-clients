@@ -10,7 +10,7 @@ $apikey = APIKEY;
 $locale = @file_get_contents($locale_file);
 $locale = @json_decode($locale, true);
 
-$endpoint = 'http://tarjim.io/translationkeys/json/full/'.$project_id.'?apikey='.$apikey;
+$endpoint = 'http://app.tarjim.io/translationkeys/json/full/'.$project_id.'?apikey='.$apikey;
 $result = file_get_contents($endpoint);
 $api_result = json_decode($result, true);
 

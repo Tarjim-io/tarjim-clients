@@ -5,18 +5,18 @@ git submodule add git@bitbucket.org:joylab/tarjim_clients.git
 ```
 2. update log/cache files permissions
 ```
-chmod -R 777 vendors/tarjim_clients/cake/cache/
-chmod -R 777 vendors/tarjim_clients/cake/logs/
+chmod -R 777 vendors/tarjim_clients/php/cache/
+chmod -R 777 vendors/tarjim_clients/php/logs/
 ```
-3. add symlink in vendors/shells to tarjim_clients/cake/tarjim.php in root project dir run 
+3. add symlink in vendors/shells to tarjim_clients/php/tarjim.php in root project dir run 
 ```
 cd vendors/shells
-ln -s ../tarjim_clients/cake/tarjim.php
+ln -s ../tarjim_clients/php/tarjim.php
 ```
 4. add symlink to tarjim_controller in controllers in root project dir run 
 ```
 cd controllers
-ln -s ../vendors/tarjim_clients/cake/tarjim_controller.php
+ln -s ../vendors/tarjim_clients/php/tarjim_controller.php
 ```
 5. add to setup_environment script 
 ```
@@ -25,26 +25,22 @@ git submodule update --remote --merge  vendors/tarjim_clients
 mkdir -p ./tmp/cache/locale
 mkdir -p ./tmp/logs/vendors/tarjim_client
 ```
-6. mkdir tmp/cache/locale
-7. chmod -R 777 tmp/cache/locale/
-8. mkdir tmp/logs/vendors/tarjim_client
-9. chmod -R 777 tmp/logs/vendors/tarjim_client/
-10. add following routes:
+6. add following routes:
 ```
 ## Translation routes
 Router::connect('/api/v1/update-locale-cache',
 ['controller' => 'tarjim', 'action' => 'updateLocaleCache', 'method' => 'GET']);
 ```
-11. add following to config/core:
+7. add following to config/core:
 ```	
 ## Tarjim / Translations Load Tarjim.io translation client
-require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/cake/tarjim-client.php';
+require_once ROOT.'/'.APP_DIR.'/vendors/tarjim_clients/php/tarjim-client.php';
 Configure::write('TARJIM_PROJECT_ID', YOUR_PROJECT_ID);
 Configure::write('TARJIM_DEFAULT_NAMESPACE', YOUR_DEFAULT_NAMESPACE);
 Configure::write('TARJIM_APIKEY', YOUR_API_KEY); 
 ```
-12. update TARJIM_PROJECT_ID
-13. add to app_controller:
+8. update TARJIM_PROJECT_ID
+9. add to app_controller:
  - Note: add project language cases to switch statement below
  this function should also be defined in models if you want to use tarjim in a model
 
@@ -53,44 +49,14 @@ Configure::write('TARJIM_APIKEY', YOUR_API_KEY);
    *
    */
   public function setTranslation($language = 'en') {
-		global $_T;
-
-		## Support older language keys
-		switch($language) {
-		case 'en':
-		case 'eng':
-		case 'english':
-			$language = 'en';
-			break;
-
-		case 'fr':
-		case 'fre':
-		case 'french':
-			$language = 'fr';
-			break;
-
-		default:
-			$language = 'fr';
-			break;
-
-		}
-
-		$project_id = YOUR_PROJECT_ID;
-		$apikey = YOUR_APIKEY;
-		$default_namespace = DEFAULT_NAMESPACE;
-
-    ## Additional namespaces is optional
-    # takes array of strings
-		$additional_namespaces = ADDITIONAL_NAMESPACES;
+		$project_id = Configure::read('TARJIM_PROJECT_ID');
+		$apikey = Configure::read('TARJIM_APIKEY');
+		$default_namespace = Configure::read('TARJIM_DEFAULT_NAMESPACE');
+		$additional_namespaces = Configure::read('TARJIM_ADDITIONAL_NAMESPACES');
 
     ## Set translation keys
     $Tarjim = new Tarjimclient($project_id, $apikey, $default_namespace, $additional_namespaces);
-		$_T = $Tarjim->getTranslations();
-
-		## for Cakex view translation (non-json encoded)
-		$_T['results'] = $_T['results'];
-		$_T['meta']['active_language'] = $language;
-		$_T['meta']['default_namespace'] = $default_namespace;
+		$Tarjim->setTranslations($language);
   }
 
 public function beforeFilter() {
@@ -150,3 +116,26 @@ attributes received from tarjim.io will overwrite attributes received from the f
 so in previous example if this key has attributes: {class: 'class-from-tarjim', height:'200px'} __TM will return 
 <img src='src' class='class-from-tarjim' width='100px' height='200px'/> 
 notice that width and height are both added
+
+### Using tarjim for datasets
+* _TD($key, $config = []);
+* returns values for all languages for a key ex: 
+```
+[
+	'en' => 'en values,
+	'fr' => 'fr value'
+]
+```
+* config can be ['namespace' => $namespace] if $namespace == 'all_namespaces' returns the values for all namespaces ex:
+```
+[
+	'namespace 1' => [
+		'en' => 'en values,
+		'fr' => 'fr value'
+	],
+	'namespace 2' => [
+		'en' => 'en value',
+		'fr' => 'fr value'
+	]
+]
+```
