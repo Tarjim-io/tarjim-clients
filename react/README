@@ -112,10 +112,26 @@ so in previous example if this key has attributes: {class: 'class-from-tarjim', 
 <img src='src' class='class-from-tarjim' width='100px' height='200px'/> 
 notice that width and height are both added
 
-## Important notes
-1. in index.js
-	* Change translationKeys, supportedLanguages, translations with your projects available languages
-	* In translationKeys var change 'react' to your projects's namespace
-	* For react native
-		1. remove document.getElementById('language') and set default language to en
+### Using tarjim for datasets
+* __TD($key, $config = {});
+* returns values for all languages for a key ex: 
+```
+{
+	'en' => 'en values,
+	'fr' => 'fr value'
+}
+```
+* config can be {'namespace' => $namespace} if $namespace == 'all_namespaces' returns the values for all namespaces ex:
+```
+{
+	'namespace 1' => {
+		'en' => 'en values,
+		'fr' => 'fr value'
+	{,
+	'namespace 2' => {
+		'en' => 'en value',
+		'fr' => 'fr value'
+	}
+}
+```
 

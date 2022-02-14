@@ -48,17 +48,13 @@ class Tarjimclient {
 	 */
   public function setTranslations($language) {
 		global $_T;
-		$project_id = Configure::read('TARJIM_PROJECT_ID');
-		$apikey = Configure::read('TARJIM_APIKEY');
-		$default_namespace = Configure::read('TARJIM_DEFAULT_NAMESPACE');
-		$additional_namespaces = Configure::read('TARJIM_ADDITIONAL_NAMESPACES');
 
     ## Set translation keys
 		$_T = $this->getTranslations();
 
 		## for Cakex view translation (non-json encoded)
 		$_T['results'] = $_T['results'];
-		$_T['meta']['default_namespace'] = $default_namespace;
+		$_T['meta']['default_namespace'] = $this->default_namespace;
 		$this->setActiveLanguage($language);
   }
 
@@ -310,6 +306,7 @@ function _T($key, $config = [], $debug = false) {
 		return;
 	}
 
+
 	set_error_handler('tarjimErrorHandler');
 
 	## Check for mappings
@@ -321,6 +318,7 @@ function _T($key, $config = [], $debug = false) {
 	if (isset($config['namespace'])) {
 		$namespace = $config['namespace'];
 	}
+
 
 	$result = getTarjimValue($key, $namespace);
 	$value = $result['value'];
