@@ -32,6 +32,7 @@ class Tarjimclient {
 		$this->logs_dir = __DIR__.'/logs/';
 		$this->errors_file = $this->logs_dir.'errors.log';
 		$this->update_cache_log_file = $this->logs_dir.'update_cache.log';
+		$this->tarjim_base_url = 'https://app.tarjim.io';
 	}
 
 	/**
@@ -87,7 +88,7 @@ class Tarjimclient {
 			}
 			else {
 				## Pull meta
-				$endpoint = 'http://tarjim.io/api/v1/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
+				$endpoint = $this->tarjim_base_url.'/api/v1/translationkeys/json/meta/'.$this->project_id.'?apikey='.$this->apikey;
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $endpoint);
 				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -180,7 +181,7 @@ class Tarjimclient {
 	public function getLatestFromTarjim() {
 		set_error_handler('tarjimErrorHandler');
 
-		$endpoint = 'http://tarjim.io/api/v1/translationkeys/jsonByNameSpaces';
+		$endpoint = $this->tarjim_base_url.'/api/v1/translationkeys/jsonByNameSpaces';
 
 		$post_params = [
 			'project_id' => $this->project_id,
@@ -198,7 +199,6 @@ class Tarjimclient {
 		curl_setopt($ch, CURLOPT_POSTREDIR, 3);
 
 		$result = curl_exec($ch);
-
 
 		if (curl_error($ch)) {
 			$this->writeToFile($this->errors_file, date('Y-m-d H:i:s').' Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
@@ -258,7 +258,7 @@ class Tarjimclient {
 	 *
 	 */
 	public function reportErrorToApi($error_type, $error_details) {
-		$endpoint = 'http://tarjim.io/api/v1/report-client-error/';
+		$endpoint = $this->tarjim_base_url.'/api/v1/report-client-error/';
 
 		if (php_sapi_name() != 'cli') {
 			$domain = $_SERVER['HTTP_HOST']; 
