@@ -3,7 +3,8 @@ let _listener = async function() {
     let queryOptions = { active: true, currentWindow: true };
 
     // Get current tab location
-    let [tab] = await chrome.tabs.query(queryOptions);
+    let tab = await getCurrentTab(); 
+
     let url = tab.url;
     url = new URL(url);
     let host = url.host;
@@ -15,22 +16,28 @@ let _listener = async function() {
         return;
     }
 
-    host = host.split('.');
-    let domain = host.slice(-2);
-    domain = domain.join('.');
+   // host = host.split('.');
     // Get project id from tarjim
-    let projectId 
-    await fetch(`https://tarjim.io/projects/project_id_from_domain/${domain}`)
+    let projectId;
+    let updateCacheEndpoint;
+    await fetch(`https://app.tarjim.io/api/v1/projects/getProjectIdFromDomain/${host}`)
         .then(res => res.json())
         .then(response => {
             if (response.status === 'success') {
-                projectId = response.project_id;
-                chrome.storage.sync.set({ projectId: projectId, projectName: domain});
+                projectId = response.result.data.project_id;
+                updateCacheEndpoint = response.result.data.update_cache_url;
+                chrome.storage.sync.set({ projectId: projectId, projectName: host, updateCacheEndpoint: updateCacheEndpoint });
             }
             else {
-                chrome.storage.sync.set({ projectId: null, projectName: 'No tarjim project found'});
+              chrome.storage.sync.set({ projectId: null, projectName: 'No tarjim project found', updateCacheEndpoint: null});
             }
         })
+}
+
+async function getCurrentTab() {
+  let queryOptions = { active: true, currentWindow: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
 }
 
 // Remove highlights and injected elements

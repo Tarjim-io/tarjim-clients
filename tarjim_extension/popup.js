@@ -1,8 +1,11 @@
 let projectNameDiv = document.getElementById("projectNameDiv");
+let linkToTarjim = document.getElementById('linkToTarjim');
+let refreshCacheButton = document.getElementById('refreshCacheButton');
 
 window.addEventListener('load', async (event) => {
   chrome.storage.sync.get('projectId', async (storage) => {
     if (storage.projectId != null) {
+      linkToTarjim.setAttribute('href', `https://app.tarjim.io/translationkeys/index/${storage.projectId}`);
       // Show show or hide key depending on highlight state
       chrome.storage.sync.get('nodesHighlighted', (storage) => {
         if (storage.nodesHighlighted === true) {
@@ -26,7 +29,17 @@ window.addEventListener('load', async (event) => {
       return;
     }
   });
+
+  chrome.storage.sync.get('updateCacheEndpoint', (storage) => {
+    if (storage.updateCacheEndpoint != null) {
+      refreshCacheButton.setAttribute('href', storage.updateCacheEndpoint);
+    }
+    else {
+   //   refreshCacheButton.style = "display: none;";
+    }
+  })
 });
+
 
 chrome.storage.sync.get('projectName', (storage) => {
   let projectName = storage.projectName;
@@ -108,7 +121,7 @@ async function highlightTarjimNodes() {
           // Disable default buttons/clicks
           e.preventDefault();
           // Open tarjim edit page
-          window.open(`https://tarjim.io/translationvalues/edit/${projectId}/${tarjimId}?ext=1`, "extension_popup", "width=600,height=700,status=no,scrollbars=yes,resizable=yes");
+          window.open(`https://app.tarjim.io/translationvalues/edit/${projectId}/${tarjimId}?ext=1`, "extension_popup", "width=600,height=700,status=no,scrollbars=yes,resizable=yes");
           e.stopPropagation();
           return false;
         });
@@ -126,7 +139,7 @@ async function highlightTarjimNodes() {
       let domain = location.slice(-2) 
       domain = domain.join('.');
       let projectId 
-      await fetch(`https://tarjim.io/projects/project_id_from_domain/${domain}`)
+      await fetch(`https://app.tarjim.io/projects/project_id_from_domain/${domain}`)
         .then(res => res.json())
         .then(response => {
           projectId = response.project_id;
