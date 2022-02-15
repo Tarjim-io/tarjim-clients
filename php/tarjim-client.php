@@ -554,6 +554,7 @@ function assignTarjimId($id, $value) {
  * Prevent js injection
  */
 function sanitizeResult($key, $result) {
+	global $_T;
 	$unacceptable_tags = ['script'];
 	$unacceptable_attribute_values = [
 		'function',
@@ -576,7 +577,6 @@ function sanitizeResult($key, $result) {
 		}
 
 		if (file_exists($Tarjim->sanitized_html_cache_file) && filesize($Tarjim->sanitized_html_cache_file) && isset($active_language)) {
-			global $_T;
 			$sanitized_html_cache_file = $Tarjim->sanitized_html_cache_file;
 			$cache_file = $Tarjim->cache_file;
 
