@@ -67,6 +67,8 @@ export const LocalizationProvider = ({children}) => {
 		else {
 			language = defaultLanguage;
 		}
+
+		setCurrentLocale(language);
 		
 		// Set initial config
 	//	_setTarjimConfig(language);
