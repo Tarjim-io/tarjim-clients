@@ -196,7 +196,7 @@ class Tarjimclient {
 
 		$result = curl_exec($ch);
 
-		if (curl_error($ch)) {
+		if (curl_error($ch) || empty($result)) {
 			$this->writeToFile($this->errors_file, date('Y-m-d H:i:s').' Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
 			$cache_data = file_get_contents($this->cache_file);
 			$final = json_decode($cache_data, true);
