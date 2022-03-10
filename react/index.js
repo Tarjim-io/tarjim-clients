@@ -28,6 +28,13 @@ var allNamespaces = additionalNamespaces;
 allNamespaces.unshift(defaultNamespace);
 
 export const LocalizationProvider = ({children}) => {
+	DOMPurify.addHook('afterSanitizeAttributes', function (node) {
+		// set all elements owning target to target=_blank
+		if ('target' in node) {
+			node.setAttribute('target', '_blank');
+			node.setAttribute('rel', 'noopener noreferrer');
+		}
+	});
 
 	var translationKeys = {};
 
@@ -67,6 +74,8 @@ export const LocalizationProvider = ({children}) => {
 		else {
 			language = defaultLanguage;
 		}
+
+		setCurrentLocale(language);
 		
 		// Set initial config
 	//	_setTarjimConfig(language);
