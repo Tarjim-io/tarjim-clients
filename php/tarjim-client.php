@@ -174,7 +174,7 @@ class Tarjimclient {
 	/**
 	 * Get full results from tarjim
 	 */
-	public function getLatestFromTarjim() {
+	public function getLatestFromTarjim($return_false_on_fail = false) {
 		set_error_handler('tarjimErrorHandler');
 
 		$endpoint = $this->tarjim_base_url.'/api/v1/translationkeys/jsonByNameSpaces';
@@ -203,6 +203,7 @@ class Tarjimclient {
 
 			## Restore default error handler
 			restore_error_handler();
+			if ($return_false_on_fail) { return false; }
 			return $final;
 		}
 
@@ -217,6 +218,7 @@ class Tarjimclient {
 
 			## Restore default error handler
 			restore_error_handler();
+			if ($return_false_on_fail) { return false; }
 			return $final;
 		}
 		
