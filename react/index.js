@@ -3,7 +3,6 @@ import React , { useState, useEffect, createContext } from 'react';
 import memoize from 'lodash.memoize';
 import DOMPurify from 'isomorphic-dompurify';
 import cachedTarjimData from './cache/cachedTarjimData';
-import Helmet from "react-helmet";
 
 // Config variables
 import {
@@ -393,7 +392,6 @@ export const LocalizationProvider = ({children}) => {
     let translationValue = getTranslationValue(key, namespace);
     let value = translationValue.value;
 
-    console.log(value,'_TSEO');
     let titleTag;
 
     document.title = value;
@@ -415,13 +413,6 @@ export const LocalizationProvider = ({children}) => {
     let value = translationValue.value;
 
     let metaTag;
-
-    /*
-    metaTag = document.createElement("meta");
-    metaTag.setAttribute('name', 'description')
-    metaTag.setAttribute('content', value )
-    document.head.appendChild(metaTag);
-    */
 
     document.querySelector('meta[name="description"]').setAttribute("content", value);
 
