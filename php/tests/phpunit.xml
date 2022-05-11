@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+N.B: Removed attributes from phpunit element:
+	 mapTestClassNameToCoveredClassName="false"
+	 printerClass="PHPUnit_TextUI_ResultPrinter"
+	 testSuiteLoaderClass="PHPUnit_Runner_StandardTestSuiteLoader" 
+-->
+
+<phpunit
+	bootstrap="bootstrap.php"
+
+	backupStaticAttributes="false"
+
+	cacheTokens="false"
+	colors="true"
+
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	forceCoversAnnotation="false"
+
+	processIsolation="false"
+	stopOnError="false"
+	stopOnFailure="false"
+	stopOnIncomplete="false"
+	stopOnSkipped="false"
+
+	verbose="false"
+	>
+
+	<testsuites>
+		<testsuite name="AllTests">
+			<directory>.</directory>
+			<exclude>./helpers</exclude>
+			<exclude>./files</exclude>
+			<exclude>./Interactive</exclude>
+			<exclude>./off</exclude>
+			<exclude>./references</exclude>
+		</testsuite>
+	</testsuites>
+
+
+	<filter>
+
+		<whitelist processUncoveredFilesFromWhitelist="false">
+			<directory suffix=".php">../models</directory>
+			<file>../app_model.php</file>
+			<!--
+				<exclude>
+					<file>/home/elventails/Sites/app-dev/assetic_compile.php</file>
+					<file>/home/elventails/Sites/app-dev/get_tag.php</file>
+					<file>/home/elventails/Sites/app-dev/set_tag.php</file>
+					<file>/home/elventails/Sites/app-dev/releasenotes.php</file>
+
+					<directory suffix=".php">../.git</directory>
+					<directory suffix=".php">../cache</directory>
+					<directory>../cake</directory>
+					<directory suffix=".php">../config</directory>
+					<directory suffix=".php">../controllers</directory>
+					<directory suffix=".php">../libs</directory>
+					<directory suffix=".php">../locale</directory>
+					<directory suffix=".php">../plugins</directory>
+					<directory suffix=".php">../scripts</directory>
+					<directory suffix=".php">../tests</directory>
+					<directory suffix=".php">../tmp</directory>
+					<directory suffix=".php">../vendor</directory>
+					<directory suffix=".php">../vendors</directory>
+					<directory suffix=".php">../webroot</directory>
+				</exclude>
+				-->
+			</whitelist>
+		</filter>
+
+
+	</phpunit>

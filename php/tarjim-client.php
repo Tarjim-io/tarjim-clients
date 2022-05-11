@@ -109,7 +109,7 @@ class Tarjimclient {
 				$meta = json_decode($meta, true);
 
 				if ('fail' == $meta['status']) {
-					$this->reportErrorToApi('api_error', $meta['result']['error']['message']);	
+					$this->reportErrorToApi('api_error', $meta['result']['error']['message']);
 					$cache_data = file_get_contents($this->cache_file);
 					$final = json_decode($cache_data, true);
 
@@ -119,7 +119,7 @@ class Tarjimclient {
 					return $final;
 				}
 
-				## Forward compatibility		
+				## Forward compatibility
 				if (array_key_exists('result', $meta)) {
 					$meta = $meta['result']['data'];
 				}
@@ -181,7 +181,7 @@ class Tarjimclient {
 
 		$post_params = [
 			'project_id' => $this->project_id,
-			'apikey' => $this->apikey,	
+			'apikey' => $this->apikey,
 			'namespaces' => $this->namespaces,
 		];
 
@@ -221,8 +221,8 @@ class Tarjimclient {
 			if ($return_false_on_fail) { return false; }
 			return $final;
 		}
-		
-		## Forward compatibility		
+
+		## Forward compatibility
 		if (array_key_exists('result', $decoded)) {
 			$decoded = $decoded['result']['data'];
 		}
@@ -259,7 +259,7 @@ class Tarjimclient {
 		$endpoint = $this->tarjim_base_url.'/api/v1/report-client-error/';
 
 		if (php_sapi_name() != 'cli') {
-			$domain = $_SERVER['HTTP_HOST']; 
+			$domain = $_SERVER['HTTP_HOST'];
 		}
 		else {
 			$domain = 'cli';
@@ -268,7 +268,7 @@ class Tarjimclient {
 		$post_params = [
 			'domain' => $domain,
 			'project_id' => $this->project_id,
-			'apikey' => $this->apikey,	
+			'apikey' => $this->apikey,
 			'error_type' => $error_type,
 			'error_details' => $error_details,
 		];
@@ -308,6 +308,10 @@ function _T($key, $config = [], $debug = false) {
 		return;
 	}
 
+	if (isset($config['SEO']) && $config['SEO']) {
+    return _TSEO($key, $config);
+	}
+
 
 	set_error_handler('tarjimErrorHandler');
 
@@ -315,7 +319,7 @@ function _T($key, $config = [], $debug = false) {
 	if (isset($config['mappings'])) {
 		$mappings = $config['mappings'];
 	}
-	
+
 	$namespace = '';
 	if (isset($config['namespace'])) {
 		$namespace = $config['namespace'];
@@ -344,6 +348,7 @@ function _T($key, $config = [], $debug = false) {
 		echo $mode ."\n";
 		echo $key . "\n" .$value;
 	}
+
 
 	if (isset($config['do_addslashes']) && $config['do_addslashes']) {
 		$result = addslashes($value);
@@ -382,7 +387,7 @@ function _TD($key, $config = []) {
 	$original_key = $key;
 	$key = strtolower($key);
 
-	$translations = $_T['results'];	
+	$translations = $_T['results'];
 	if ('all_namespaces' == $namespace) {
 		foreach ($translations as $namespace => $namespace_translations) {
 			if ('meta' == $namespace) {
@@ -440,13 +445,13 @@ function _TM($key, $attributes=[]) {
 	}
 
 	set_error_handler('tarjimErrorHandler');
-	
+
 	$namespace = '';
 	if (isset($attributes['namespace'])) {
 		$namespace = $attributes['namespace'];
 		unset($attributes['namespace']);
 	}
-	
+
 	$result = getTarjimValue($key, $namespace);
 	$value = $result['value'];
 	$tarjim_id = $result['tarjim_id'];
@@ -474,6 +479,120 @@ function _TM($key, $attributes=[]) {
 	return $final_value;
 }
 
+function _TSEO($key, $config = []) {
+
+  if (empty($key)) {
+    return;
+  }
+
+	if (!isset($config['SEO']) || empty($config['SEO'])) {
+    return $key;
+	}
+  switch ($config['SEO']) {
+  case "page_title":
+    return _TTT($key);
+  case "open_graph":
+    return _TMT($key);
+  case "twitter_card":
+    return _TMT($key);
+  case "page_description":
+    return _TMT($key);
+    break;
+  default:
+    return $key;
+  }
+
+}
+
+/**
+ * Used for meta tags like twitter card and Open Graph
+ * @param String $key key for media
+ */
+function _TMT($key) {
+  ## Sanity
+  if (empty($key)) {
+    return;
+  }
+  set_error_handler('tarjimErrorHandler');
+
+  $result = getTarjimValue($key);
+  $value = $result['value'];
+  /**
+  $tarjim_id = $result['tarjim_id'];
+  $full_value = $result['full_value'];
+   */
+
+  $sanitized_value = sanitizeResult($key, $value);
+  $final_value = '';
+
+  if (json_decode($sanitized_value)) {
+    $sanitized_value = json_decode($sanitized_value);
+    foreach($sanitized_value as $property => $content ) {
+      if (!empty($content)) {
+        $final_value .= '<meta property="'.$property.'" content="'.$content.'" />';
+      }
+    }
+  }
+
+  ## Restore default error handler
+  restore_error_handler();
+  return $final_value;
+}
+
+/**
+ * Used for title tags like twitter card and Open Graph
+ * @param String $key key for media
+ */
+function _TTT($key) {
+  ## Sanity
+  if (empty($key)) {
+    return;
+  }
+  set_error_handler('tarjimErrorHandler');
+
+  $result = getTarjimValue($key);
+  $value = $result['value'];
+  /**
+  $tarjim_id = $result['tarjim_id'];
+  $full_value = $result['full_value'];
+   */
+
+  $sanitized_value = sanitizeResult($key, $value);
+  $final_value .= '<title>'.$sanitized_value.'</title>';
+
+  ## Restore default error handler
+  restore_error_handler();
+  return $final_value;
+}
+
+
+/**
+ * Used for description meta tags like twitter card and Open Graph
+ * @param String $key key for media
+ */
+function _TMD($key) {
+  ## Sanity
+  if (empty($key)) {
+    return;
+  }
+  set_error_handler('tarjimErrorHandler');
+
+  $result = getTarjimValue($key);
+  $value = $result['value'];
+  /**
+  $tarjim_id = $result['tarjim_id'];
+  $full_value = $result['full_value'];
+   */
+
+  $sanitized_value = sanitizeResult($key, $value);
+  $final_value .= '<meta name="description" content="'.$sanitized_value.'">';
+
+  ## Restore default error handler
+  restore_error_handler();
+  return $final_value;
+}
+
+
 /**
  * Get value for key from global $_T object
  * returns array with
@@ -485,7 +604,7 @@ function _TM($key, $attributes=[]) {
 function getTarjimValue($key, $namespace = '') {
 	set_error_handler('tarjimErrorHandler');
 	global $_T;
-		
+
 	if (empty($namespace)) {
 		$namespace = $_T['meta']['default_namespace'];
 	}

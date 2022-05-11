@@ -1,10 +1,10 @@
-<?php 
+<?php
 
 /**
  *
  */
 class TarjimShell extends Shell {
-	
+
 	/**
 	 *
 	 */
