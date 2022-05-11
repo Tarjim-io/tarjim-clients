@@ -179,12 +179,50 @@ class TarjimController extends AppController {
 
     ## Set translation keys
     $Tarjim = new Tarjimclient($project_id, $apikey, $default_namespace, $additional_namespaces);
-    
+
     $result = $Tarjim->getLatestFromTarjim();
 		$Tarjim->updateCache($result);
-    
+
 		$Tarjim->writeToFile($Tarjim->update_cache_log_file, 'cache refreshed on '.date('Y-m-d H:i:s').PHP_EOL, FILE_APPEND);
 
     $this->outputSuccessfulApi();
   }
+
+  /**
+   *
+   */
+  public function exportKeysFromView() {
+
+    $path_to_csv = ROOT.'/'.APP_DIR.'/tmp/tarjim_Keys.csv';
+    ob_end_clean();
+
+    $filename = $path_to_csv;
+    //Check the file exists or not
+    if(file_exists($filename)) {
+
+      //Define header information
+      header('Content-Description: File Transfer');
+      header('Content-Type: application/octet-stream');
+      header("Cache-Control: no-cache, must-revalidate");
+      header("Expires: 0");
+      header('Content-Disposition: attachment; filename="'.basename($filename).'"');
+      header('Content-Length: ' . filesize($filename));
+      header('Pragma: public');
+
+      //Clear system output buffer
+      flush();
+
+      //Read the size of the file
+      readfile($filename);
+
+      //Terminate from the script
+      die();
+    }
+    else {
+      echo 'File not exist, or no keys in view';
+    }
+
+  }
+
+
 }

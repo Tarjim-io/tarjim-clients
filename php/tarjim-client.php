@@ -285,6 +285,29 @@ class Tarjimclient {
 		$result = curl_exec($ch);
 	}
 
+
+	/**
+	 *
+	 */
+  public function getActivelanguages() {
+    $endpoint = $this->tarjim_base_url.'/api/v1/projects/getActivelanguages/'.$this->project_id.'?apikey='.$this->apikey;
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $endpoint);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+
+    $result = curl_exec($ch);
+    ## Get translations from cache if curl failed
+    if (curl_error($ch)) {
+      $this->writeToFile($this->errors_file, date('Y-m-d H:i:s').' Curl error line '.__LINE__.': ' . curl_error($ch).PHP_EOL, FILE_APPEND);
+
+      return [];
+    }
+    curl_close($ch);
+    return $result;
+  }
 }
 
 /**
@@ -637,6 +660,7 @@ function getTarjimValue($key, $namespace = '') {
 		}
 	}
 
+
 	## Fallback key
 	if (isset($translations[$namespace][$active_language][$key]) && empty($translations[$namespace][$active_language][$key])) {
 		$mode = 'key_fallback';
@@ -813,7 +837,6 @@ function injectValuesIntoTranslation($translation_string, $mappings) {
 
 	return $translation_string;
 }
-
 
 /**
  * Helper function to create a keys file
