@@ -4,8 +4,8 @@ import memoize from 'lodash.memoize';
 import DOMPurify from 'isomorphic-dompurify';
 import cachedTarjimData from './cache/cachedTarjimData';
 
-// Config variables 
-import { 
+// Config variables
+import {
 	supportedLanguages,
 	defaultLanguage,
 	defaultNamespace,
@@ -18,6 +18,7 @@ export const LocalizationContext = createContext({
 	__T: () => {},
 	__TS: () => {},
 	__TM: () => {},
+	__TSEO: () => {},
 	__TI: () => {},
 	__TD: () => {},
 	setTranslation: () => {},
@@ -47,7 +48,7 @@ export const LocalizationProvider = ({children}) => {
 	if (cachedTarjimData.hasOwnProperty('meta') && cachedTarjimData.meta.hasOwnProperty('results_last_update')) {
 		localeLastUpdated = cachedTarjimData.meta.results_last_update;
 	}
-	
+
 	var cachedTranslations = {};
 	if (cachedTarjimData.hasOwnProperty('results')) {
 		cachedTranslations = cachedTarjimData.results;
@@ -76,7 +77,7 @@ export const LocalizationProvider = ({children}) => {
 		}
 
 		setCurrentLocale(language);
-		
+
 		// Set initial config
 	//	_setTarjimConfig(language);
 
@@ -99,15 +100,15 @@ export const LocalizationProvider = ({children}) => {
 			supportedLanguages.forEach(language => {
 				if (cachedTranslations.hasOwnProperty(namespace)) {
 					if (cachedTranslations[namespace].hasOwnProperty(language)) {
-						translationKeys[namespace][language] = cachedTranslations[namespace][language]; 
+						translationKeys[namespace][language] = cachedTranslations[namespace][language];
 					}
 					else {
-						translationKeys[namespace][language] = {}; 
+						translationKeys[namespace][language] = {};
 					}
 				}
 				else {
 					translationKeys[namespace][language] = {};
-					//_translationKeys[namespace][language] = {}; 
+					//_translationKeys[namespace][language] = {};
 				}
 			})
 		});
@@ -128,11 +129,15 @@ export const LocalizationProvider = ({children}) => {
 				namespace = config.namespace;
 			}
 
+			if (config && config.SEO) {
+        return __TSEO(key, config);
+			}
+
 			let tempKey = key;
 			if (typeof key === 'object' || Array.isArray(key)) {
 				tempKey = key['key'];
 			}
-			
+
 			let translationValue = getTranslationValue(key, namespace);
 			let value = translationValue.value;
 			let translationId = translationValue.translationId;
@@ -143,18 +148,18 @@ export const LocalizationProvider = ({children}) => {
 	//		if (translation.type && translation.type === 'image') {
 	//			return __TM(key, config);
 	//		}
-				
+
 			//if ((typeof key === 'object' || Array.isArray(key)) && value) {
 			if (config && !isEmpty(config.mappings) && value) {
 				let mappings = config.mappings;
 				if (config.subkey) {
 					mappings = mappings[config.subkey];
 				}
-				value = _injectValuesInTranslation(value, mappings);	
+				value = _injectValuesInTranslation(value, mappings);
 			}
-			
+
 			let renderAsHtml = false;
-			let sanitized;	
+			let sanitized;
 			if ('ReactNative' != navigator.product) {
 				sanitized = DOMPurify.sanitize(value)
 
@@ -221,7 +226,7 @@ export const LocalizationProvider = ({children}) => {
 
 		return dataset;
 	}
-	 
+
 	/**
 	 * Shorthand for __T(key, {skipTid: true})
 	 * skip assiging tid and wrapping in span
@@ -306,14 +311,127 @@ export const LocalizationProvider = ({children}) => {
 			if (attribute === 'class') {
 				attribute = 'className';
 			}
-			response[attribute] = attributeValue;	
+			response[attribute] = attributeValue;
 		}
 
 		return response;
 	}
 
+
+  function __TSEO(key, config = {}) {
+    // Sanity
+    if (isEmpty(key)) {
+      return;
+    }
+		if (!config || !config.SEO) {
+      return key;
+      }
+
+    switch(config.SEO) {
+      case 'page_title':
+        return __TTT(key);
+      case 'open_graph':
+        return __TMT(key);
+      case 'twitter_card':
+        return __TMT(key);
+      case 'page_description':
+        return __TMD(key);
+      default:
+        return key;
+    }
+
+  }
+
+  /**
+   * Used for meta tags (Open Graph and twitter card )
+   */
+  function __TMT(key) {
+    // Sanity
+    if (isEmpty(key)) {
+      return;
+    }
+
+    let namespace = defaultNamespace;
+
+    let translationValue = getTranslationValue(key, namespace);
+    let value = translationValue.value;
+
+    let tagsObject;
+    let metaTag;
+
+    // Check if array
+    if ( 'object' ==  typeof(isJson(value)) ) {
+
+      let tagsObject = isJson(value);
+      var properties = Object.keys(tagsObject);
+
+      properties.map(function (property) {
+        if (tagsObject[property]) {
+          metaTag = document.createElement("meta");
+          metaTag.setAttribute('property', property )
+          metaTag.setAttribute('content', tagsObject[property] )
+			    document.head.appendChild(metaTag);
+      }
+      });
+
+    }
+
+  }
+
+  /**
+   * Used for Title tag
+   */
+  function __TTT(key) {
+    // Sanity
+    if (isEmpty(key)) {
+      return;
+    }
+
+    let namespace = defaultNamespace;
+
+    let translationValue = getTranslationValue(key, namespace);
+    let value = translationValue.value;
+
+    let titleTag;
+
+    document.title = value;
+
+  }
+
+  /**
+   * Used for page meta description
+   */
+  function __TMD(key) {
+    // Sanity
+    if (isEmpty(key)) {
+      return;
+    }
+
+    let namespace = defaultNamespace;
+
+    let translationValue = getTranslationValue(key, namespace);
+    let value = translationValue.value;
+
+    let metaTag;
+
+    document.querySelector('meta[name="description"]').setAttribute("content", value);
+
+  }
+
+  /*
+   *
+   */
+  function isJson(str) {
+    try {
+        let value = JSON.parse(str);
+      	return value
+    } catch (e) {
+        return str;
+    }
+}
+
 	/**
-	 * Get value for key from translations object 
+	 * Get value for key from translations object
 	 * returns array with
 	 * value => string to render or media src
 	 * translationId => id to assign to data-tid
@@ -337,7 +455,7 @@ export const LocalizationProvider = ({children}) => {
 
 		let translation;
 		if (
-			translations.hasOwnProperty(namespace) && 
+			translations.hasOwnProperty(namespace) &&
 			translations[namespace][language].hasOwnProperty(tempKey.toLowerCase())
 		) {
 			keyFound = true;
@@ -371,7 +489,7 @@ export const LocalizationProvider = ({children}) => {
 		return result;
 	}
 
-	/** 
+	/**
 	 *
 	 */
 	function _injectValuesInTranslation(translationString, mappings) {
@@ -380,13 +498,13 @@ export const LocalizationProvider = ({children}) => {
 
 		let percentRegex = new RegExp('%%', 'mg')
 		translationString = translationString.replace(percentRegex,'');
-		
+
 		if (!isEmpty(valuesKeysArray)) {
 			for (let i = 0; i < valuesKeysArray.length; i++) {
 				let valueKeyStripped = valuesKeysArray[i].replace(percentRegex,'').toLowerCase();
 
 				regex = new RegExp(valueKeyStripped, 'ig')
-				translationString = translationString.replace(regex, mappings[valueKeyStripped]); 
+				translationString = translationString.replace(regex, mappings[valueKeyStripped]);
 			}
 		}
 
@@ -452,7 +570,7 @@ export const LocalizationProvider = ({children}) => {
 		else {
 			language = defaultLanguage;
 		}
-		
+
 		// Update config
 		_setTarjimConfig(language);
 	}
@@ -500,7 +618,7 @@ export const LocalizationProvider = ({children}) => {
 			_translations = apiTranslations;
 		} catch(err) {
 			console.log('Translations api error: ', err);
-			_translations = translationKeys;	
+			_translations = translationKeys;
 		}
 
 		return _translations;
@@ -530,6 +648,7 @@ export const LocalizationProvider = ({children}) => {
 				__T,
 				__TS,
 				__TM,
+        __TSEO,
 				__TI,
 				__TD,
         setTranslation: setTranslation,
