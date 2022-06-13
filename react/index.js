@@ -496,14 +496,15 @@ export const LocalizationProvider = ({children}) => {
 		let regex = /%%.*?%%/g;
 		let valuesKeysArray = translationString.match(regex);
 
+
 		let percentRegex = new RegExp('%%', 'mg')
-		translationString = translationString.replace(percentRegex,'');
+		//translationString = translationString.replace(percentRegex,'');
 
 		if (!isEmpty(valuesKeysArray)) {
 			for (let i = 0; i < valuesKeysArray.length; i++) {
 				let valueKeyStripped = valuesKeysArray[i].replace(percentRegex,'').toLowerCase();
 
-				regex = new RegExp(valueKeyStripped, 'ig')
+				regex = new RegExp('%%'+valueKeyStripped+'%%', 'ig')
 				translationString = translationString.replace(regex, mappings[valueKeyStripped]);
 			}
 		}
