@@ -308,6 +308,38 @@ class Tarjimclient {
     curl_close($ch);
     return $result;
   }
+
+	/**
+	 *
+	 */
+	public function uploadImage($key, $image_file, $namespace = '') {
+		if (empty($namespace)) {
+			$namespace = $this->default_namespace;
+		}
+
+		$endpoint = $this->tarjim_base_url.'/api/v1/uploads/image';
+
+		$post_params = [
+			'project_id' => $this->project_id,
+			'apikey' => $this->apikey,
+			'namespace' => $namespace,
+			'key' => $key,
+			'image_file' => $image_file 
+		];
+
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $endpoint);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $post_params);
+		curl_setopt($ch, CURLOPT_POSTREDIR, 3);
+
+		$result = curl_exec($ch);
+
+		return $result;
+	}
 }
 
 /**
