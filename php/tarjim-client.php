@@ -409,11 +409,11 @@ function _T($key, $config = [], $debug = false) {
 		$result = addslashes($value);
 	}
 
-	if (isset($mappings)) {
-		$value = injectValuesIntoTranslation($value, $mappings);
-	}
-
 	$sanitized_value = sanitizeResult($key, $value);
+
+	if (isset($mappings)) {
+		$sanitized_value = injectValuesIntoTranslation($sanitized_value, $mappings);
+	}
 
 	## Restore default error handler
 	restore_error_handler();
