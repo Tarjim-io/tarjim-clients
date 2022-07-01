@@ -312,7 +312,7 @@ class Tarjimclient {
 	/**
 	 *
 	 */
-	public function uploadImage($key, $image_file, $namespace = '') {
+	public function uploadImage($key, $image_file, $namespace = '', $language = '') {
 		if (empty($namespace)) {
 			$namespace = $this->default_namespace;
 		}
@@ -326,6 +326,20 @@ class Tarjimclient {
 			'key' => $key,
 			'image_file' => $image_file 
 		];
+
+		$languages = [];
+		if (!empty($language)) {
+			if (is_array($language)) {
+				$languages = $language;
+			}
+			if (is_string($language)) {
+				$languages[] = $language;
+			}
+
+			if (!empty($languages)) {
+				$post_params['languages'] = json_encode($languages);
+			}
+		}
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $endpoint);
