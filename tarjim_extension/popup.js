@@ -1,8 +1,55 @@
 let projectNameDiv = document.getElementById("projectNameDiv");
 let linkToTarjim = document.getElementById('linkToTarjim');
 let refreshCacheButton = document.getElementById('refreshCacheButton');
+let loader = document.getElementById('loader');
+let content = document.getElementById('content');
 
+async function getCurrentTab() {
+  let queryOptions = { active: true, currentWindow: true };
+  let [tab] = await chrome.tabs.query(queryOptions);
+  return tab;
+}
 window.addEventListener('load', async (event) => {
+  content.classList.add('d-none');
+  loader.classList.remove('d-none');
+
+  // Get current tab location
+  let tab = await getCurrentTab(); 
+
+  let url = tab.url;
+  url = new URL(url);
+  let host = url.host;
+
+  // For development on localhost uncomment lines below and replace with your project id/name
+  // Open chrome://extensions and reload tarjim extension
+  if (host === 'localhost:3000') {
+    chrome.storage.sync.set({ projectId: '18', projectName: 'demano.ca'});
+    return;
+  }
+
+  // host = host.split('.');
+  // Get project id from tarjim
+  let projectId;
+  let updateCacheEndpoint;
+  await fetch(`https://app.tarjim.io/api/v1/projects/getProjectIdFromDomain/${host}`)
+    .then(res => res.json())
+    .then(response => {
+      if (response.status === 'success') {
+        projectId = response.result.data.project_id;
+        updateCacheEndpoint = response.result.data.update_cache_url;
+        //return { id: projectId, name: host, updateCacheEndpoint: updateCacheEndpoint };
+        chrome.storage.sync.set({ projectId: projectId, projectName: host, updateCacheEndpoint: updateCacheEndpoint });
+      }
+      else {
+        //return {id: null, name: 'No tarjim project found', updateCacheEndpoint: null}
+        chrome.storage.sync.set({ projectId: null, projectName: 'No tarjim project found', updateCacheEndpoint: null});
+      }
+    })
+
+  content.classList.remove('d-none');
+  loader.classList.add('d-none');
+
+
   chrome.storage.sync.get('projectId', async (storage) => {
     if (storage.projectId != null) {
       linkToTarjim.setAttribute('href', `https://app.tarjim.io/translationkeys/index/${storage.projectId}`);
@@ -197,6 +244,21 @@ chrome.storage.sync.onChanged.addListener(() => {
     else {
       getTarjimNodes.style = "display: block;";
       clearTarjimNodes.style = "display: none;";
+    }
+  })
+
+  chrome.storage.sync.get('projectName', (storage) => {
+    let projectName = storage.projectName;
+    if (projectName === 'No tarjim project found') {
+      projectNameDiv.innerHTML = projectName;
+      // Hide both buttons
+      getTarjimNodes.style = "display: none;";
+      clearTarjimNodes.style = "display: none";
+    }
+    else {
+      chrome.storage.sync.get('projectId', (storage) => {
+        projectNameDiv.innerHTML ='Project: ' +  projectName + ' (id: ' + storage.projectId + ')';
+      })
     }
   })
 })
