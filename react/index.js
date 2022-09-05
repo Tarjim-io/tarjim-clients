@@ -29,9 +29,10 @@ var allNamespaces = additionalNamespaces;
 allNamespaces.unshift(defaultNamespace);
 
 export const LocalizationProvider = ({children}) => {
+	DOMPurify.setConfig({ALLOWED_ATTR: ['style', 'class', 'className', 'href']})
 	DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 		// set all elements owning target to target=_blank
-		if ('target' in node) {
+		if ('href' in node) {
 			node.setAttribute('target', '_blank');
 			node.setAttribute('rel', 'noopener noreferrer');
 		}
