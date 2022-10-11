@@ -285,5 +285,10 @@ refreshCacheButton.addEventListener('click', async() => {
         content.classList.remove('d-none');
         loader.classList.add('d-none');
       })
+      .catch(err => {
+        refreshCacheMessage.innerHTML = 'Cache update failed, check the update cache url in tarjim environments'
+        content.classList.remove('d-none');
+        loader.classList.add('d-none');
+      })
   })
 })
