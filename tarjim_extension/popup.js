@@ -1,6 +1,7 @@
 let projectNameDiv = document.getElementById("projectNameDiv");
 let linkToTarjim = document.getElementById('linkToTarjim');
 let refreshCacheButton = document.getElementById('refreshCacheButton');
+let refreshCacheMessage = document.getElementById('refreshCacheMessage');
 let loader = document.getElementById('loader');
 let content = document.getElementById('content');
 
@@ -79,10 +80,10 @@ window.addEventListener('load', async (event) => {
 
   chrome.storage.sync.get('updateCacheEndpoint', (storage) => {
     if (storage.updateCacheEndpoint != null) {
-      refreshCacheButton.setAttribute('href', storage.updateCacheEndpoint);
+      //refreshCacheButton.setAttribute('href', storage.updateCacheEndpoint);
     }
     else {
-   //   refreshCacheButton.style = "display: none;";
+      refreshCacheButton.style = "display: none;";
     }
   })
 });
@@ -260,5 +261,29 @@ chrome.storage.sync.onChanged.addListener(() => {
         projectNameDiv.innerHTML ='Project: ' +  projectName + ' (id: ' + storage.projectId + ')';
       })
     }
+  })
+})
+
+/**
+ *
+ */
+refreshCacheButton.addEventListener('click', async() => {
+  content.classList.add('d-none');
+  loader.classList.remove('d-none');
+
+  var updateEndpoint;
+  await chrome.storage.sync.get('updateCacheEndpoint', async (storage) => {
+    await fetch(storage.updateCacheEndpoint)
+      .then(res => res.json())
+      .then(response => {
+        if (response.status === 'success') {
+          refreshCacheMessage.innerHTML = 'Cache updated, refresh the page to see the changes'
+        }
+        else {
+          refreshCacheMessage.innerHTML = 'Cache update failed, check the update cache url in tarjim environments'
+        }
+        content.classList.remove('d-none');
+        loader.classList.add('d-none');
+      })
   })
 })
