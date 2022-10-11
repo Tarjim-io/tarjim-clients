@@ -29,9 +29,10 @@ var allNamespaces = additionalNamespaces;
 allNamespaces.unshift(defaultNamespace);
 
 export const LocalizationProvider = ({children}) => {
+	DOMPurify.setConfig({ALLOWED_ATTR: ['style', 'class', 'className', 'href', 'tabindex']})
 	DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 		// set all elements owning target to target=_blank
-		if ('target' in node) {
+		if ('href' in node) {
 			node.setAttribute('target', '_blank');
 			node.setAttribute('rel', 'noopener noreferrer');
 		}
@@ -148,6 +149,16 @@ export const LocalizationProvider = ({children}) => {
 	//		if (translation.type && translation.type === 'image') {
 	//			return __TM(key, config);
 	//		}
+			
+			let renderAsHtml = false;
+			let sanitized;
+			if ('ReactNative' != navigator.product) {
+				value = DOMPurify.sanitize(value)
+
+				if (value.match(/<[^>]+>/g)) {
+					renderAsHtml = true;
+				}
+			}
 
 			//if ((typeof key === 'object' || Array.isArray(key)) && value) {
 			if (config && !isEmpty(config.mappings) && value) {
@@ -158,16 +169,7 @@ export const LocalizationProvider = ({children}) => {
 				value = _injectValuesInTranslation(value, mappings);
 			}
 
-			let renderAsHtml = false;
-			let sanitized;
-			if ('ReactNative' != navigator.product) {
-				sanitized = DOMPurify.sanitize(value)
-
-				if (sanitized.match(/<[^>]+>/g)) {
-					renderAsHtml = true;
-				}
-			}
-			else {
+			if ('ReactNative' == navigator.product) {
 				return  value;
 			}
 
@@ -181,10 +183,10 @@ export const LocalizationProvider = ({children}) => {
 			}
 
 			if (assignTarjimId || renderAsHtml) {
-				return <span data-tid={translationId} dangerouslySetInnerHTML={{__html: sanitized}}></span>
+				return <span data-tid={translationId} dangerouslySetInnerHTML={{__html: value}}></span>
 			}
 			else {
-				return sanitized;
+				return value;
 			}
 		}
 		,
