@@ -18,11 +18,11 @@ function clearTarjimNodesHighlight() {
   nodes.forEach((node, index) => {
     node.style = '';
   })
-  chrome.storage.sync.set({ nodesHighlighted: false});
+  chrome && chrome.storage.sync.set({ nodesHighlighted: false});
 }
 
 // Add listener for url changes
-chrome.tabs.onUpdated.addListener((tabId) => {
+chrome && chrome.tabs.onUpdated.addListener((tabId) => {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
     function: clearTarjimNodesHighlight,
