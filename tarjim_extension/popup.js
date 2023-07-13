@@ -1,3 +1,5 @@
+/* global chrome */
+
 let projectNameDiv = document.getElementById("projectNameDiv");
 let linkToTarjim = document.getElementById('linkToTarjim');
 let refreshCacheButton = document.getElementById('refreshCacheButton');

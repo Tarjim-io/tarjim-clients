@@ -1,3 +1,5 @@
+/* global chrome */
+
 // Remove highlights and injected elements
 function clearTarjimNodesHighlight() {
   // Remove injected style tag
