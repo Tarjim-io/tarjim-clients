@@ -12,6 +12,7 @@ async function getCurrentTab() {
   let [tab] = await chrome.tabs.query(queryOptions);
   return tab;
 }
+
 window.addEventListener('load', async (event) => {
   content.classList.add('d-none');
   loader.classList.remove('d-none');
@@ -22,13 +23,6 @@ window.addEventListener('load', async (event) => {
   let url = tab.url;
   url = new URL(url);
   let host = url.host;
-
-  // For development on localhost uncomment lines below and replace with your project id/name
-  // Open chrome://extensions and reload tarjim extension
-  if (host === 'localhost:3000') {
-    chrome.storage.sync.set({ projectId: '18', projectName: 'demano.ca'});
-    return;
-  }
 
   // host = host.split('.');
   // Get project id from tarjim
