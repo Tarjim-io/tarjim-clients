@@ -1,6 +1,4 @@
 /* global chrome */
-let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-if (tab.url.!startsWith("https://") && tab.url.!startsWith("http://")) return;
 
 // Remove highlights and injected elements
 function clearTarjimNodesHighlight() {
